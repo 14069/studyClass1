@@ -24,12 +24,12 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-info">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+            <a class="navbar-brand fw-bold text-info" href="{% url 'home' %}">
                 <i class="bi bi-people-fill"></i> Social - StudyClass
             </a>
             <div class="d-flex">
                 <a href="{% url 'new_usuario' %}" class="btn btn-light text-info fw-bold me-2">Criar Conta</a>
-                <a href="{% url 'login' %}" class="btn btn-light">Login</a>
+                <a href="{% url 'login' %}" class="btn btn-light text-info fw-bold">Login</a>
             </div>
         </div>
     </nav>
@@ -47,9 +47,9 @@
     </header>
 
     <!-- Conteúdo Principal -->
-    <main class="container my-5">
+ <main class="container my-5">
         <div class="row justify-content-center">
-            <section class="col-lg-8">
+            <section class="col-lg-8">   
                 <h2 class="mb-4 fw-bold">Postagens Recentes</h2>
 
                 {% for postagem in postagens %}

@@ -2,7 +2,7 @@
 {% load widget_tweaks %}
 
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="{% if request.COOKIES.darkMode == 'enabled' %}dark-mode{% endif %}">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,9 +12,6 @@
 
     <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
 
-    <!-- Font Awesome -->
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous" defer></script>
-
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800" rel="stylesheet" />
@@ -22,44 +19,58 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- AOS CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
     <!-- CSS do Tema -->
     <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/base.css' %}" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous" defer></script>
 </head>
 
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav" data-aos="fade-down" data-aos-duration="1000">
         <div class="container px-4 px-lg-5">
             <a class="navbar-brand fw-bold" href="{% url 'index' %}">Study Class</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                     data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" 
                     aria-expanded="false" aria-label="Toggle navigation">
-                Menu <i class="fas fa-bars"></i>
+                <span class="navbar-toggler-icon"></span>
             </button>
-            
-
-            <!-- Navbar Links -->
+            <button id="darkModeToggle" class="btn btn-outline-secondary">
+                <i class="bi bi-moon"></i>
+            </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ms-auto py-4 py-lg-0">
                     {% if user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'new_post' %}">Nova Postagem</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarConta" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Conta
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarConta">
-                            <li><a class="dropdown-item" href="#">Ver Conta</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a></li>
-                        </ul>
-                    </li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'new_post' %}">Nova Postagem</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarConta" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Conta
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarConta">
+                                <li><a class="dropdown-item" href="{% url 'perfil_usuario' %}">Ver Conta</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
                     {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'new_usuario' %}">Criar Conta</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'new_usuario' %}">Criar Conta</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -67,7 +78,8 @@
     </nav>
 
     <!-- Page Header -->
-    <header class="masthead" style="background-image: url({% static 'assets/img/home-bg.jpg' %})">        <div class="container position-relative px-4 px-lg-5">
+    <header class="masthead" style="background-image: url({% static 'assets/img/home-bg.jpg' %})">
+        <div class="container position-relative px-4 px-lg-5" data-aos="fade-up" data-aos-duration="1200">
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <div class="site-heading text-center">
@@ -80,12 +92,12 @@
     </header>
 
     <!-- Main Content -->
-    {% block content %}
-
-    {% endblock %}
+    <main data-aos="fade-up" data-aos-duration="1000">
+        {% block content %}{% endblock %}
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-light py-5">
+    <footer class="bg-light py-5" data-aos="fade-up" data-aos-duration="1000">
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4">
@@ -125,13 +137,86 @@
         </div>
     </footer>
 
-    <!-- Tema JS -->
-    <!-- Core JS -->
+    <!-- Scripts -->
     <script src="{% static 'js/scripts.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Page-specific JS -->
-    <!-- {% block page_specific_js %}{% endblock %} -->
-    {% block extra_js %}{% endblock extra_js %}
+    <!-- AOS JS -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            once: true, // Anima uma vez só
+            duration: 1000, // Tempo padrão de animação
+        });
+        
+        // Função para gerenciar o dark mode
+        function setupDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (!darkModeToggle) return;
+            
+            const icon = darkModeToggle.querySelector('i');
+            
+            // Verifica o estado salvo do dark mode
+            if (localStorage.getItem('darkMode') === 'enabled' || document.documentElement.classList.contains('dark-mode')) {
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+                if (icon) {
+                    icon.classList.remove('bi-moon');
+                    icon.classList.add('bi-sun');
+                }
+            }
+
+            // Função para alternar o dark mode
+            function toggleDarkMode() {
+                document.documentElement.classList.toggle('dark-mode');
+                document.body.classList.toggle('dark-mode');
+                
+                // Salva a preferência do usuário
+                if (document.body.classList.contains('dark-mode')) {
+                    localStorage.setItem('darkMode', 'enabled');
+                    document.cookie = 'darkMode=enabled; path=/; max-age=31536000; SameSite=Lax';
+                    if (icon) {
+                        icon.classList.remove('bi-moon');
+                        icon.classList.add('bi-sun');
+                    }
+                } else {
+                    localStorage.setItem('darkMode', 'disabled');
+                    document.cookie = 'darkMode=; path=/; max-age=0; SameSite=Lax';
+                    if (icon) {
+                        icon.classList.remove('bi-sun');
+                        icon.classList.add('bi-moon');
+                    }
+                }
+            }
+
+            // Adiciona o evento de clique ao botão
+            darkModeToggle.addEventListener('click', toggleDarkMode);
+        }
+
+        // Função para o efeito de scroll da navbar
+        function setupNavbarScroll() {
+            const navbar = document.querySelector('.navbar');
+            if (!navbar) return;
+            
+            function toggleNavbar() {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+
+            toggleNavbar();
+            window.addEventListener('scroll', toggleNavbar);
+        }
+        
+        // Inicializa tudo quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDarkMode();
+            setupNavbarScroll();
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

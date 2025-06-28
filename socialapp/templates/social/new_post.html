@@ -3,106 +3,287 @@
 {% load widget_tweaks %}
 
 {% block extra_css %}
-    <link href="{% static 'bootstrap-icons/font/bootstrap-icons.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/new_post.css' %}">
+<style>
+    /* Estilos específicos para a página de nova postagem */
+    .post-form-container {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem auto;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .post-form-container {
+        background-color: #2d2d2d;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+    }
+
+    .form-floating > label {
+        color: #6c757d;
+    }
+
+    .dark-mode .form-floating > label {
+        color: #adb5bd;
+    }
+
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .dark-mode .form-control, 
+    .dark-mode .form-select,
+    .dark-mode .form-control:focus,
+    .dark-mode .form-select:focus {
+        background-color: #3d3d3d;
+        border-color: #4d4d4d;
+        color: #f8f9fa;
+    }
+
+    .post-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-submit {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .table-container {
+        margin-top: 3rem;
+        background-color: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .table-container {
+        background-color: #2d2d2d;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+
+    .dark-mode .table thead th {
+        background-color: #3d3d3d;
+        border-color: #4d4d4d;
+        color: #f8f9fa;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .dark-mode .table tbody tr {
+        border-color: #4d4d4d;
+    }
+
+    .dark-mode .table tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .action-buttons .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        margin: 0 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .post-form-container {
+            padding: 1.5rem;
+        }
+        
+        .table-responsive {
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        
+        .table {
+            min-width: 600px;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="post-form-container" data-aos="fade-up">
+                <h2 class="text-center mb-4">Nova Postagem</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {% render_field form.autor_postagem class="form-control" id="autor" placeholder="Autor" %}
+                                <label for="autor">Autor</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {% render_field form.data_postagem type="datetime-local" class="form-control" id="dia" %}
+                                <label for="dia">Data da Postagem</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                {% render_field form.titulo_postagem class="form-control" id="titulo" placeholder="Título" %}
+                                <label for="titulo">Título</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating mb-3">
+                                {% render_field form.conteudo_postagem class="form-control" id="conteudo" style="height: 150px;" placeholder="Conteúdo" %}
+                                <label for="conteudo">Conteúdo</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {% render_field form.id_avalia class="form-select" id="avalia" %}
+                                <label for="avalia">Avaliação</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="bi bi-save me-2"></i>Salvar Postagem
+                        </button>
+                        <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Voltar
+                        </a>
+                    </div>
+                </form>
+            </div>
 
-<div class="container py-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Nova Postagem</h4>
-        </div>
-        <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            {% render_field form.autor_postagem class="form-control" id="autor" placeholder="Autor" %}
-                            <label for="autor">Autor</label>
+            <div class="table-container mt-5" data-aos="fade-up" data-aos-delay="100">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Minhas Postagens</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th>Título</th>
+                                        <th class="d-none d-md-table-cell">Autor</th>
+                                        <th class="d-none d-lg-table-cell">Data</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for post in posts %}
+                                        <tr>
+                                            <td class="text-center">{{ forloop.counter }}</td>
+                                            <td>
+                                                <div class="fw-semibold">{{ post.titulo_postagem|truncatechars:30 }}</div>
+                                                <small class="text-muted d-md-none">{{ post.autor_postagem }} • {{ post.data_postagem|date:"d/m/Y H:i" }}</small>
+                                            </td>
+                                            <td class="d-none d-md-table-cell">{{ post.autor_postagem }}</td>
+                                            <td class="d-none d-lg-table-cell">{{ post.data_postagem|date:"d/m/Y H:i" }}</td>
+                                            <td class="text-center action-buttons">
+                                                <a href="{% url 'editar_post' post.id_postagem %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <a href="{% url 'deleta_post' post.id_postagem %}" class="btn btn-sm btn-outline-danger" title="Excluir" 
+                                                   onclick="return confirm('Tem certeza que deseja excluir esta postagem?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                                <a href="#" class="btn btn-sm btn-outline-info d-none d-md-inline-block" title="Visualizar">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                                                    Nenhuma postagem encontrada.
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            {% render_field form.data_postagem type="datetime-local" class="form-control" id="dia" placeholder="Data da postagem" %}
-                            <label for="dia">Data da Postagem</label>
-                        </div>
+                    {% if posts.has_other_pages %}
+                    <div class="card-footer bg-transparent">
+                        <nav aria-label="Navegação de páginas">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if posts.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1" aria-label="Primeira">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.previous_page_number }}" aria-label="Anterior">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in posts.paginator.page_range %}
+                                    {% if posts.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if posts.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.next_page_number }}" aria-label="Próxima">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.paginator.num_pages }}" aria-label="Última">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            {% render_field form.titulo_postagem class="form-control" id="titulo" placeholder="Título" %}
-                            <label for="titulo">Título</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            {% render_field form.conteudo_postagem class="form-control" id="conteudo" placeholder="Conteúdo" %}
-                            <label for="conteudo">Conteúdo</label>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-floating">
-                            {% render_field form.id_avalia class="form-control" id="avalia" placeholder="Avaliação" %}
-                            <label for="avalia">Avaliação</label>
-                        </div>
-                    </div>
+                    {% endif %}
                 </div>
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-save"></i> Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card shadow-lg mt-5">
-        <div class="card-header bg-dark text-white">
-            <h4 class="mb-0 text-center">Postagens</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr class="text-center">
-                            <th>Id</th>
-                            <th>Autor</th>
-                            <th>Data</th>
-                            <th>Título</th>
-                            <th>Conteúdo</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for post in posts %}
-                            <tr class="text-center">
-                                <td>{{ post.id_postagem }}</td>
-                                <td>{{ post.autor_postagem }}</td>
-                                <td>{{ post.data_postagem|date:"d/m/Y H:i" }}</td>
-                                <td>{{ post.titulo_postagem }}</td>
-                                <td>{{ post.conteudo_postagem }}</td>
-                                <td class="">
-                                    <a href="{% url 'editar_post' post.id_postagem %}" class="btn btn-warning btn-sm me-1" title="Editar">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a href="{% url 'deleta_post' post.id_postagem %}" class="btn btn-danger btn-sm" title="Excluir">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center">Nenhuma postagem cadastrada.</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
 </div>
-
-{% endblock content %}
+{% endblock %}
 

@@ -18,3 +18,4 @@ class UsuarioForm(UserCreationForm):
         widget=forms.Select(attrs={'class':'custom-select'}),
         initial='Discente'
     )
+

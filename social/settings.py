@@ -128,9 +128,10 @@ STATICFILES_DIRS=[
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGOUT_REDIRECT_URL='home'
+# Configurações de autenticação
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'  # URL name da página principal dos posts
-LOGIN_URL = 'login'  # URL name da página de login
+LOGOUT_REDIRECT_URL = 'home'  # Página para onde o usuário será redirecionado após o logout
+LOGOUT_REQUEST_METHOD = 'POST'  # Garante que o logout só seja feito via POST
 
 LANGUAGE_CODE = 'pt-br'
-

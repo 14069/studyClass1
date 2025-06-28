@@ -4,6 +4,7 @@ from socialapp.models import Avalia, Postagem, Perfil, Telefone, Perfil_post, Li
 from django.http import JsonResponse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 @login_required
 def index(request):

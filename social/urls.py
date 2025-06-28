@@ -36,7 +36,7 @@ urlpatterns = [
     path('new_post/', new_post, name='new_post'),
     path('editar_post/<str:id>', editar_post, name='editar_post'),
     path('deleta_post/<int:id>', deleta_post, name='deleta_post'),
-        path('post/<int:post_id>/like/', like_post, name='like_post'),
+    path('post/<int:post_id>/like/', like_post, name='like_post'),
     path('post/<int:post_id>/comment/', add_comment, name='add_comment'),
 
     path('', include('usuario.urls')),
