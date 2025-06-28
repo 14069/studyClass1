@@ -19,7 +19,7 @@ from django.urls import path, include
 from django.views.generic.base import RedirectView
 from socialapp.views import index, sobre, home ,contato 
 from socialapp.views import new_avalia, editar_avalia, deleta_avalia
-from socialapp.views import new_post, deleta_post, editar_post, like_post
+from socialapp.views import new_post, deleta_post, editar_post, like_post, add_comment
 
 urlpatterns = [
     path('', home, name='home'),
@@ -36,7 +36,8 @@ urlpatterns = [
     path('new_post/', new_post, name='new_post'),
     path('editar_post/<str:id>', editar_post, name='editar_post'),
     path('deleta_post/<int:id>', deleta_post, name='deleta_post'),
-    path('post/<int:post_id>/like/', like_post, name='like_post'),
+        path('post/<int:post_id>/like/', like_post, name='like_post'),
+    path('post/<int:post_id>/comment/', add_comment, name='add_comment'),
 
     path('', include('usuario.urls')),
 

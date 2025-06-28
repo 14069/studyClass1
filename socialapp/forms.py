@@ -1,5 +1,5 @@
 from django import forms
-from socialapp.models import Avalia, Postagem,Perfil, Telefone,Perfil_post
+from socialapp.models import Avalia, Postagem, Perfil, Telefone, Perfil_post, Comment
 
 class AvaliaForms(forms.ModelForm):
     class Meta:
@@ -38,5 +38,20 @@ class PerfilPostForms(forms.ModelForm):
         widgets = {
             'id_perfil': forms.Select(attrs={'class': 'form-control'}),
             'id_postagem': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.TextInput(
+                attrs={
+                    'class': 'form-control form-control-sm rounded-pill',
+                    'placeholder': 'Adicione um comentário...',
+                    'aria-label': 'Adicionar comentário'
+                }
+            )
         }
 

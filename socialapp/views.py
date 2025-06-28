@@ -1,19 +1,20 @@
-
-
 from django.shortcuts import render, redirect, get_object_or_404
-from socialapp.forms import AvaliaForms,PostagemForms,PerfilForms, TelefoneForms, PerfilPostForms
+from socialapp.forms import AvaliaForms, PostagemForms, PerfilForms, TelefoneForms, PerfilPostForms, CommentForm
 from socialapp.models import Avalia, Postagem, Perfil, Telefone, Perfil_post, Like, Comment
 from django.http import JsonResponse
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 # Create your views here.
 @login_required
 def index(request):
     posts = Postagem.objects.all().order_by('-data_postagem')
     liked_post_ids = Like.objects.filter(user=request.user).values_list('postagem_id', flat=True)
+    comment_form = CommentForm()
 
     return render(request, 'social/index.html', {
         'posts': posts,
-        'liked_post_ids': liked_post_ids
+        'liked_post_ids': liked_post_ids,
+        'comment_form': comment_form
     })
 
 def home(request):
@@ -98,8 +99,21 @@ def editar_post(request, id):
 
 
 
-def deleta_post(request,id):
+@login_required
+def deleta_post(request, id):
     post = get_object_or_404(Postagem, pk=id)
+    
+    # Segurança: Garante que apenas o autor da postagem pode excluí-la.
+    if str(post.autor_postagem) != str(request.user.username):
+        # Redireciona se o usuário não for o autor.
+        return redirect('index')
+
+    if request.method == "POST":
+        post.delete()
+        return redirect('index')
+    
+    # Redireciona para o início se o método for GET para evitar exclusão acidental.
+    return redirect('index')
 
 
 @login_required
@@ -120,9 +134,29 @@ def like_post(request, post_id):
         'likes_count': post.likes.count(),
         'liked': liked
     })
-    form = PostagemForms(instance=post)
-    posts = Postagem.objects.all()
-    if request.method == "POST":
-        post.delete()
-        return redirect('new_post')
-    return render(request,'social/deleta_post.html',{'post':post, 'form':form, 'posts':posts})
+
+
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Postagem, id_postagem=post_id)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.postagem = post
+            comment.user = request.user
+            comment.save()
+
+            # Converte o horário UTC para o fuso horário local definido em settings.py
+            local_created_at = timezone.localtime(comment.created_at)
+
+            return JsonResponse({
+                'success': True,
+                'comment': {
+                    'content': comment.content,
+                    'user': comment.user.username,
+                    'created_at': local_created_at.strftime('%d/%m/%Y %H:%M')
+                },
+                'comments_count': post.comments.count()
+            })
+    return JsonResponse({'success': False, 'errors': form.errors if 'form' in locals() else 'Invalid request'})

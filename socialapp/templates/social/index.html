@@ -31,7 +31,7 @@
                                 </div>
                             </div>
 
-                            {% if user.is_authenticated %}
+                            {% if postagem.autor_postagem == request.user.username %}
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-light rounded-circle"
                                         type="button"
@@ -50,11 +50,12 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item text-danger"
-                                           href="{% url 'deleta_post' postagem.id_postagem %}"
-                                           onclick="return confirm('Tem certeza que deseja excluir esta postagem?')">
-                                            <i class="bi bi-trash me-2"></i> Excluir
-                                        </a>
+                                        <form action="{% url 'deleta_post' postagem.id_postagem %}" method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Tem certeza que deseja excluir esta postagem?');">
+                                                <i class="bi bi-trash me-2"></i> Excluir
+                                            </button>
+                                        </form>
                                     </li>
                                 </ul>
                             </div>
@@ -71,18 +72,51 @@
 
                         <!-- Ações -->
                         <div class="d-flex gap-2 mt-3">
-                            <a href="#" 
-                               class="btn btn-sm like-btn {% if postagem.id_postagem in liked_post_ids %}btn-primary{% else %}btn-outline-primary{% endif %}"
-                               data-post-id="{{ postagem.id_postagem }}">
-                                <i class="bi {% if postagem.id_postagem in liked_post_ids %}bi-heart-fill{% else %}bi-heart{% endif %} me-1"></i>
-                                <span class="like-text">{% if postagem.id_postagem in liked_post_ids %}Descurtir{% else %}Curtir{% endif %}</span>
-                            </a>
-                            <span class="ms-2 text-muted align-self-center" id="like-count-{{ postagem.id_postagem }}">
-                                {{ postagem.likes.count }} curtida{{ postagem.likes.count|pluralize:"s" }}
-                            </span>
-                            <button class="btn btn-light border btn-sm">
-                                <i class="bi bi-chat me-1"></i> Comentar
-                            </button>
+                            <div class="d-flex align-items-center gap-3">
+                                <!-- Botão de Curtir -->
+                                <button type="button" class="btn btn-link text-decoration-none p-0 like-button" data-post-id="{{ postagem.id_postagem }}">
+                                    <i class="bi {% if postagem.id_postagem in liked_post_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} fs-5"></i>
+                                </button>
+                                <!-- Botão de Comentar -->
+                                <button type="button" class="btn btn-link text-decoration-none p-0" data-bs-toggle="collapse" data-bs-target="#comments-{{ postagem.id_postagem }}">
+                                    <i class="bi bi-chat-dots fs-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <span class="fw-bold" id="like-count-{{ postagem.id_postagem }}">{{ postagem.likes.count }}</span>
+                            <span class="text-muted">curtida{{ postagem.likes.count|pluralize:"s" }}</span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="fw-bold" id="comment-count-{{ postagem.id_postagem }}">{{ postagem.comments.count }}</span>
+                            <span class="text-muted">comentário{{ postagem.comments.count|pluralize:"s" }}</span>
+                        </div>
+                        <!-- Seção de Comentários -->
+                        <div class="collapse mt-3" id="comments-{{ postagem.id_postagem }}">
+                            <hr>
+                            <div class="comments-list mb-3">
+                                {% for comment in postagem.comments.all %}
+                                    <div class="d-flex mb-2">
+                                        <div class="flex-shrink-0">
+                                            <!-- Você pode adicionar a foto do perfil do usuário aqui -->
+                                        </div>
+                                        <div class="ms-2">
+                                            <p class="mb-0">
+                                                <strong class="me-2">{{ comment.user.username }}</strong>
+                                                {{ comment.content }}
+                                            </p>
+                                            <small class="text-muted">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted small no-comments">Nenhum comentário ainda.</p>
+                                {% endfor %}
+                            </div>
+                            <form class="comment-form d-flex" action="{% url 'add_comment' postagem.id_postagem %}" data-post-id="{{ postagem.id_postagem }}" method="POST">
+                                {% csrf_token %}
+                                {{ comment_form.content }}
+                                <button type="submit" class="btn btn-primary btn-sm ms-2 rounded-pill">Enviar</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -95,58 +129,160 @@
     </div>
 </main>
 
+{% endblock content %}
 
-{% endblock %}
-
-{% block page_specific_js %}
+{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Adiciona o listener para todos os botões de like
-        document.querySelectorAll('.like-btn').forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault(); // Previne a ação padrão do link (#)
+document.addEventListener('DOMContentLoaded', function () {
+    console.log("DOM fully loaded and parsed.");
 
-                const postId = this.dataset.postId;
-                const url = `/post/${postId}/like/`;
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
 
-                // Pega o token CSRF dos cookies
-                const csrfToken = document.cookie.split('; ')
-                    .find(row => row.startsWith('csrftoken='))
-                    ?.split('=')[1];
+    // --- LÓGICA DE CURTIR ---
+    const likeButtons = document.querySelectorAll('.like-button');
+    likeButtons.forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            const postId = this.dataset.postId;
+            const url = `/post/${postId}/like/`;
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Atualiza a contagem de likes
-                    const likeCountSpan = document.getElementById(`like-count-${postId}`);
-                    likeCountSpan.textContent = `${data.likes_count} curtida${data.likes_count !== 1 ? 's' : ''}`;
-
-                    // Atualiza a aparência do botão
-                    const icon = this.querySelector('i');
-                    const text = this.querySelector('.like-text');
-                    if (data.liked) {
-                        this.classList.remove('btn-outline-primary');
-                        this.classList.add('btn-primary');
-                        icon.classList.remove('bi-heart');
-                        icon.classList.add('bi-heart-fill');
-                        text.textContent = 'Descurtir';
-                    } else {
-                        this.classList.remove('btn-primary');
-                        this.classList.add('btn-outline-primary');
-                        icon.classList.remove('bi-heart-fill');
-                        icon.classList.add('bi-heart');
-                        text.textContent = 'Curtir';
-                    }
-                })
-                .catch(error => console.error('Erro ao curtir o post:', error));
-            });
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(`like-count-${postId}`).textContent = data.likes_count;
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-heart', !data.liked);
+                icon.classList.toggle('bi-heart-fill', data.liked);
+                icon.classList.toggle('text-danger', data.liked);
+            })
+            .catch(error => console.error('Error liking post:', error));
         });
     });
+
+    // --- LÓGICA DE COMENTAR ---
+    const commentForms = document.querySelectorAll('.comment-form');
+    commentForms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log("Comment form submission intercepted.");
+
+            const postId = this.dataset.postId;
+            const contentInput = this.querySelector('input[name="content"]');
+            const url = this.getAttribute('action');
+            
+            if (!contentInput || !contentInput.value.trim()) return;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const commentsList = document.querySelector(`#comments-${postId} .comments-list`);
+                    const noCommentsMessage = commentsList.querySelector('.no-comments');
+                    if (noCommentsMessage) noCommentsMessage.remove();
+
+                    const newComment = document.createElement('div');
+                    newComment.classList.add('d-flex', 'mb-2');
+                    newComment.innerHTML = `
+                        <div class="ms-2">
+                            <p class="mb-0">
+                                <strong class="me-2">${data.comment.user}</strong>
+                                <span>${data.comment.content}</span>
+                            </p>
+                            <small class="text-muted">${data.comment.created_at}</small>
+                        </div>
+                    `;
+                    commentsList.appendChild(newComment);
+                    contentInput.value = '';
+
+                    const commentCountSpan = document.getElementById(`comment-count-${postId}`);
+                    if (commentCountSpan) {
+                        commentCountSpan.textContent = data.comments_count;
+                    }
+                } else {
+                    console.error('Error adding comment:', data.errors);
+                    alert('Não foi possível adicionar o comentário.');
+                }
+            })
+            .catch(error => console.error('Error submitting comment:', error));
+        });
+    });
+});
 </script>
+{% endblock extra_js %}
+
+{% comment %}
+{% block page_specific_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Adiciona o listener para todos os botões de like
+            document.querySelectorAll('.like-btn').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault(); // Previne a ação padrão do link (#)
+    
+                    const postId = this.dataset.postId;
+                    const url = `/post/${postId}/like/`;
+    
+                    // Pega o token CSRF dos cookies
+                    const csrfToken = document.cookie.split('; ')
+                        .find(row => row.startsWith('csrftoken='))
+                        ?.split('=')[1];
+    
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Atualiza a contagem de likes
+                        const likeCountSpan = document.getElementById(`like-count-${postId}`);
+                        likeCountSpan.textContent = `${data.likes_count} curtida${data.likes_count !== 1 ? 's' : ''}`;
+    
+                        // Atualiza a aparência do botão
+                        const icon = this.querySelector('i');
+                        const text = this.querySelector('.like-text');
+                        if (data.liked) {
+                            this.classList.remove('btn-outline-primary');
+                            this.classList.add('btn-primary');
+                            icon.classList.remove('bi-heart');
+                            icon.classList.add('bi-heart-fill');
+                            text.textContent = 'Descurtir';
+                        } else {
+                            this.classList.remove('btn-primary');
+                            this.classList.add('btn-outline-primary');
+                            icon.classList.remove('bi-heart-fill');
+                            icon.classList.add('bi-heart');
+                            text.textContent = 'Curtir';
+                        }
+                    })
+                    .catch(error => console.error('Erro ao curtir o post:', error));
+                });
+            });
+        });
+    </script>
 {% endblock %}
+{% endcomment %}
