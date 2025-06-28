@@ -7,11 +7,12 @@
 <main class="container my-5">
     <div class="row justify-content-center">
         <section class="col-lg-8">
+
             <h2 class="mb-4 fw-bold">
                 <i class="bi bi-chat-square-text me-2"></i>Postagens Recentes
             </h2>
 
-            {% for postagem in postagens %}
+            {% for postagem in posts %}
                 <div class="card shadow-sm border-0 rounded-4 mb-4">
                     <div class="card-body p-4">
                         
@@ -70,9 +71,15 @@
 
                         <!-- Ações -->
                         <div class="d-flex gap-2 mt-3">
-                            <button class="btn btn-light border btn-sm">
-                                <i class="bi bi-heart me-1"></i> Curtir
-                            </button>
+                            <a href="#" 
+                               class="btn btn-sm like-btn {% if postagem.id_postagem in liked_post_ids %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                               data-post-id="{{ postagem.id_postagem }}">
+                                <i class="bi {% if postagem.id_postagem in liked_post_ids %}bi-heart-fill{% else %}bi-heart{% endif %} me-1"></i>
+                                <span class="like-text">{% if postagem.id_postagem in liked_post_ids %}Descurtir{% else %}Curtir{% endif %}</span>
+                            </a>
+                            <span class="ms-2 text-muted align-self-center" id="like-count-{{ postagem.id_postagem }}">
+                                {{ postagem.likes.count }} curtida{{ postagem.likes.count|pluralize:"s" }}
+                            </span>
                             <button class="btn btn-light border btn-sm">
                                 <i class="bi bi-chat me-1"></i> Comentar
                             </button>
@@ -84,13 +91,62 @@
                     Nenhuma postagem encontrada.
                 </div>
             {% endfor %}
-
-            <p class="text-center text-muted fst-italic mt-5">
-                Entre na plataforma para interagir com as postagens!
-            </p>
         </section>
     </div>
 </main>
 
 
+{% endblock %}
+
+{% block page_specific_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Adiciona o listener para todos os botões de like
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault(); // Previne a ação padrão do link (#)
+
+                const postId = this.dataset.postId;
+                const url = `/post/${postId}/like/`;
+
+                // Pega o token CSRF dos cookies
+                const csrfToken = document.cookie.split('; ')
+                    .find(row => row.startsWith('csrftoken='))
+                    ?.split('=')[1];
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Atualiza a contagem de likes
+                    const likeCountSpan = document.getElementById(`like-count-${postId}`);
+                    likeCountSpan.textContent = `${data.likes_count} curtida${data.likes_count !== 1 ? 's' : ''}`;
+
+                    // Atualiza a aparência do botão
+                    const icon = this.querySelector('i');
+                    const text = this.querySelector('.like-text');
+                    if (data.liked) {
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-primary');
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
+                        text.textContent = 'Descurtir';
+                    } else {
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-outline-primary');
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
+                        text.textContent = 'Curtir';
+                    }
+                })
+                .catch(error => console.error('Erro ao curtir o post:', error));
+            });
+        });
+    });
+</script>
 {% endblock %}

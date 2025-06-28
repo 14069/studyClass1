@@ -1,3 +1,20 @@
+.navbar-info .navbar-brand{
+    color:#ffffff !important;
+}
+
+.navbar-info .nav-link{
+    color:#ffffff !important;
+}
+
+header.bg-dark h1,
+header.bg-dark p{
+    color:#ffffff !important;
+}
+
+.text-blue {
+    color: #0d6efd !important;
+}
+
 footer{
 	height: 200px;
 }
@@ -34,7 +51,7 @@ ul{
 
 /* Header */
 header {
-	background: url('../assets/img/header-bg.jpg') center/cover no-repeat;
+	background: url('../assets/img/home-bg.jpg') center/cover no-repeat;
 }
 
 /* Cards */
@@ -384,7 +401,7 @@ form, table {
 
 /* Header */
 header {
-	background: url('../assets/img/header-bg.jpg') center/cover no-repeat;
+	background: url('../assets/img/home-bg.jpg') center/cover no-repeat;
 }
 
 /* Cards */

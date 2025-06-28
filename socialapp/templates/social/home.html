@@ -1,165 +1,118 @@
 {% load static %}
-{% load widget_tweaks %}
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Social - StudyClass</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Social - StudyClass</title>
 
-	<!-- Bootstrap CSS -->
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-	<!-- Bootstrap Icons -->
-	<link href="{% static 'bootstrap-icons/font/bootstrap-icons.css' %}" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="{% static 'bootstrap-icons/font/bootstrap-icons.css' %}" rel="stylesheet">
 
-	<!-- Custom CSS -->
-	<link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
 
+    <meta name="description" content="Plataforma de interação, estudo e compartilhamento de conhecimento.">
+    <meta name="author" content="Study Class">
 </head>
 <body class="bg-light">
 
-	<!-- Navbar -->
-	<nav class="navbar navbar-expand-lg navbar-info bg-info">
-		<div class="container">
-			<a class="navbar-brand fw-bold text-white" href="{% url 'index' %}">
-				<i class="bi bi-people-fill"></i> Social - StudyClass
-			</a>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+                <i class="bi bi-people-fill"></i> Social - StudyClass
+            </a>
+            <div class="d-flex">
+                <a href="{% url 'new_usuario' %}" class="btn btn-light text-info fw-bold me-2">Criar Conta</a>
+                <a href="{% url 'login' %}" class="btn btn-light">Login</a>
+            </div>
+        </div>
+    </nav>
 
-			<div class="d-flex">
-				<a href="{% url 'new_usuario' %}" class="btn btn-outline-light me-2">
-					<i class="bi bi-person-plus-fill"></i> Criar Conta
-				</a>
-				<a href="{% url 'login' %}" class="btn btn-light">
-					<i class="bi bi-box-arrow-in-right"></i> Login
-				</a>
-			</div>
-		</div>
-	</nav>
+    <!-- Header -->
+    <header class="py-5 bg-dark text-center">
+        <div class="container">
+            <h1 class="display-5 fw-bold text-white">
+				<span class="text-info">Bem-vindo ao Study Class</span>
+			</h1>
+            <p class="lead text-white-50">
+				<span class="text-info">Acesse para interagir, comentar e compartilhar conhecimento!</span>
+			</p>
+        </div>
+    </header>
 
-	<!-- Header -->
-	<header class="py-5 bg-dark text-white text-center">
-		<div class="container">
-			<h1 class="display-5 fw-bold">Bem-vindo ao Study Class</h1>
-			<p class="lead">Acesse para interagir, comentar e compartilhar conhecimento!</p>
-		</div>
-	</header>
+    <!-- Conteúdo Principal -->
+    <main class="container my-5">
+        <div class="row justify-content-center">
+            <section class="col-lg-8">
+                <h2 class="mb-4 fw-bold">Postagens Recentes</h2>
 
-	<!-- Conteúdo Principal -->
-	<main class="container my-5">
-		<div class="row">
-			<!-- Coluna Postagens -->
-			<section class="col-md-8">
-				<h3 class="mb-4">Postagens Recentes</h3>
+                {% for postagem in postagens %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-person-circle text-primary" style="font-size: 2.5rem;"></i>
+                                <div class="ms-3">
+                                    <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ postagem.data_postagem|date:"d/m/Y H:i" }}</small>
+                                </div>
+                            </div>
 
-				{% block content %}
-					{% for postagem in postagens %}
-						<div class="card mb-4">
-							<div class="card-body">
-								<div class="d-flex justify-content-between">
-									<div class="d-flex">
-										<i class="fas fa-user-circle text-primary fa-2x me-3"></i>
-										<div>
-											<h5 class="mb-0">{{ postagem.autor_postagem }}</h5>
-											<small class="text-muted">
-												<i class="bi bi-clock"></i>
-												{{ postagem.data_postagem|date:"d/m/Y H:i" }}
-											</small>
-										</div>
-									</div>
+                            <h4 class="card-title fw-bold text-primary">{{ postagem.titulo_postagem }}</h4>
+                            <p class="card-text">{{ postagem.conteudo_postagem|truncatewords:50 }}</p>
 
-									{% if user.is_authenticated %}
-										<div class="dropdown">
-											<button class="btn btn-link text-secondary p-0"
-													type="button"
-													id="postOptions{{ postagem.id_postagem }}"
-													data-bs-toggle="dropdown"
-													aria-expanded="false">
-												<i class="bi bi-three-dots-vertical"></i>
-											</button>
-											<ul class="dropdown-menu dropdown-menu-end"
-												aria-labelledby="postOptions{{ postagem.id_postagem }}">
-												<li>
-													<a class="dropdown-item"
-													href="{% url 'editar_post' postagem.id_postagem %}">
-														<i class="bi bi-pencil me-2"></i> Editar
-													</a>
-												</li>
-												<li><hr class="dropdown-divider"></li>
-												<li>
-													<a class="dropdown-item text-danger"
-													href="{% url 'deleta_post' postagem.id_postagem %}"
-													onclick="return confirm('Tem certeza que deseja excluir esta postagem?')">
-														<i class="bi bi-trash me-2"></i> Excluir
-													</a>
-												</li>
-											</ul>
-										</div>
-									{% endif %}
-								</div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                    <i class="bi bi-heart me-1"></i> Curtir
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                    <i class="bi bi-chat me-1"></i> Comentar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-info">Nenhuma postagem encontrada.</div>
+                {% endfor %}
 
-								<h2 class="card-title mt-3">{{ postagem.titulo_postagem }}</h2>
-								<p class="card-text">
-									{{ postagem.conteudo_postagem|truncatewords:50 }}
-								</p>
+                <p class="text-center text-muted fst-italic mt-5">Entre na plataforma para interagir com as postagens!</p>
+            </section>
+        </div>
+    </main>
 
-								<div class="d-flex gap-2 mt-3">
-									<button class="btn btn-outline-primary btn-sm">
-										<i class="bi bi-heart me-1"></i> Curtir
-									</button>
-									<button class="btn btn-outline-secondary btn-sm">
-										<i class="bi bi-chat me-1"></i> Comentar
-									</button>
-								</div>
-							</div>
-						</div>
-					{% empty %}
-						<div class="alert alert-info">
-							Nenhuma postagem encontrada.
-						</div>
-					{% endfor %}
-				{% endblock %}
-				
-				<p class="text-center text-muted fst-italic mt-5">
-					Entre na plataforma para interagir com as postagens!
-				</p>
-			</section>
-		</div>
-	</main>
+    <!-- Footer -->
+    <footer class="bg-white py-4 border-top mt-5">
+        <div class="container text-center text-muted">
+            &copy; {% now 'Y' %} Study Class. Todos os direitos reservados.
+        </div>
+    </footer>
 
-	<!-- Footer -->
-	<footer class="bg-light py-4 border-top">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-4 mb-3">
-					<h5>Sobre</h5>
-					<p class="text-muted">Plataforma para compartilhar experiências, conectar-se e aprender juntos. Seja bem-vindo ao Study Class!</p>
-				</div>
-				<div class="col-md-4 mb-3">
-					<h5>Links Úteis</h5>
-					<ul class="list-unstyled">
-						<li><a href="{% url 'sobre' %}" class="text-decoration-none text-muted">Sobre Nós</a></li>
-						<li><a href="{% url 'contato' %}" class="text-decoration-none text-muted">Contato</a></li>
-					</ul>
-				</div>
-				<div class="col-md-4 mb-3">
-					<h5>Redes Sociais</h5>
-					<div class="d-flex gap-3">
-						<a href="https://x.com/studyclassbr" class="text-muted" target="_blank"><i class="bi bi-twitter fs-4"></i></a>
-						<a href="https://facebook.com/studyclassbr" class="text-muted" target="_blank"><i class="bi bi-facebook fs-4"></i></a>
-						<a href="https://github.com/studyclassbr" class="text-muted" target="_blank"><i class="bi bi-github fs-4"></i></a>
-					</div>
-				</div>
-			</div>
+    <!-- Modal de Login -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="loginModalLabel"><i class="bi bi-box-arrow-in-right me-2"></i>Faça login para interagir!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Para curtir, comentar e criar suas próprias postagens, é necessário estar logado.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-primary">Ir para o Login</a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-			<div class="text-center text-muted mt-3">
-				&copy; {% now 'Y' %} Study Class. Todos os direitos reservados.
-			</div>
-		</div>
-	</footer>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-	<!-- Bootstrap JS -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
