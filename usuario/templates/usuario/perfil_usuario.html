@@ -49,9 +49,6 @@
                         </div>
 
                         <div class="text-center">
-                            <a href="#" class="btn btn-outline-primary">
-                                <i class="bi bi-pencil"></i> Editar Perfil
-                            </a>
                             <form method="post" action="{% url 'logout' %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-outline-danger">

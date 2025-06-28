@@ -6,9 +6,21 @@
 <main class="container my-5">
     <div class="row justify-content-center">
         <section class="col-lg-8">
-            <h2 class="mb-4 fw-bold">
-                <i class="bi bi-chat-square-text me-2"></i>Postagens Recentes
-            </h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">
+                    <i class="bi bi-collection me-2"></i>Minhas Postagens
+                </h2>
+                <a href="{% url 'new_post' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Postagem
+                </a>
+            </div>
+
+            {% if posts %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Aqui estão todas as suas postagens. Você pode editar ou excluí-las quando quiser.
+                </div>
+            {% endif %}
 
             {% for postagem in posts %}
                 <div class="card shadow-sm border-0 rounded-4 mb-4">
@@ -22,7 +34,6 @@
                                     {{ postagem.data_postagem|date:"d/m/Y H:i" }}
                                 </small>
                             </div>
-                            {% if postagem.autor_postagem == request.user.username or request.user.is_superuser %}
                             <div class="ms-auto dropdown">
                                 <button class="btn btn-sm btn-light rounded-circle"
                                         type="button"
@@ -33,50 +44,58 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end"
                                     aria-labelledby="postOptions{{ postagem.id_postagem }}">
-                                    {% if postagem.autor_postagem == request.user.username or request.user.is_superuser %}
                                     <li>
                                         <a class="dropdown-item"
                                            href="{% url 'editar_post' postagem.id_postagem %}">
                                             <i class="bi bi-pencil me-2"></i> Editar
-                                            {% if request.user.is_superuser and postagem.autor_postagem != request.user.username %}
-                                            <span class="badge bg-warning text-dark ms-2">Admin</span>
-                                            {% endif %}
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form action="{% url 'deleta_post' postagem.id_postagem %}" method="POST" class="d-inline">
                                             {% csrf_token %}
-                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Tem certeza que deseja excluir esta postagem?');">
+                                            <button type="submit" class="dropdown-item text-danger" 
+                                                    onclick="return confirm('Tem certeza que deseja excluir esta postagem?');">
                                                 <i class="bi bi-trash me-2"></i> Excluir
-                                                {% if request.user.is_superuser and postagem.autor_postagem != request.user.username %}
-                                                <span class="badge bg-warning text-dark ms-2">Admin</span>
-                                                {% endif %}
                                             </button>
                                         </form>
                                     </li>
-                                    {% endif %}
                                 </ul>
                             </div>
-                            {% endif %}
                         </div>
 
                         <h4 class="card-title fw-bold text-primary">
                             {{ postagem.titulo_postagem }}
                         </h4>
                         <p class="card-text">
-                            {{ postagem.conteudo_postagem|truncatewords:50 }}
+                            {{ postagem.conteudo_postagem|linebreaksbr }}
                         </p>
+
+                        {% if postagem.imagem_postagem %}
+                        <div class="mb-3">
+                            <img src="{{ postagem.imagem_postagem.url }}" 
+                                 alt="Imagem da postagem" 
+                                 class="img-fluid rounded-3">
+                        </div>
+                        {% endif %}
 
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-outline-primary btn-sm like-button" data-post-id="{{ postagem.id_postagem }}">
                                 <i class="bi {% if postagem.id_postagem in liked_post_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} me-1"></i>
-                                <span class="like-text">Curtir</span>
+                                <span class="like-text">
+                                    {% if postagem.id_postagem in liked_post_ids %}Descurtir{% else %}Curtir{% endif %}
+                                </span>
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#comments-{{ postagem.id_postagem }}">
+                            <button class="btn btn-outline-secondary btn-sm" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#comments-{{ postagem.id_postagem }}" 
+                                    aria-expanded="false" 
+                                    aria-controls="comments-{{ postagem.id_postagem }}">
                                 <i class="bi bi-chat me-1"></i> Comentar
                             </button>
                         </div>
+
                         <div class="mt-2">
                             <span class="fw-bold" id="like-count-{{ postagem.id_postagem }}">{{ postagem.likes.count }}</span>
                             <span class="text-muted">curtida{{ postagem.likes.count|pluralize:"s" }}</span>
@@ -84,6 +103,7 @@
                             <span class="fw-bold" id="comment-count-{{ postagem.id_postagem }}">{{ postagem.comments.count }}</span>
                             <span class="text-muted">comentário{{ postagem.comments.count|pluralize:"s" }}</span>
                         </div>
+
                         <!-- Seção de Comentários -->
                         <div class="collapse mt-3" id="comments-{{ postagem.id_postagem }}">
                             <hr>
@@ -117,23 +137,34 @@
                                     <p class="text-muted small no-comments">Nenhum comentário ainda.</p>
                                 {% endfor %}
                             </div>
-                            <form class="comment-form d-flex" action="{% url 'add_comment' postagem.id_postagem %}" data-post-id="{{ postagem.id_postagem }}" method="POST">
+                            
+                            <!-- Formulário de Comentário -->
+                            <form class="comment-form mt-3" method="POST" action="{% url 'add_comment' postagem.id_postagem %}" data-post-id="{{ postagem.id_postagem }}">
                                 {% csrf_token %}
-                                {{ comment_form.content }}
-                                <button type="submit" class="btn btn-primary btn-sm ms-2 rounded-pill">Enviar</button>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           name="content" 
+                                           class="form-control" 
+                                           placeholder="Adicione um comentário..." 
+                                           required>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 </div>
             {% empty %}
                 <div class="alert alert-info">
-                    Nenhuma postagem encontrada.
+                    <i class="bi bi-info-circle me-2"></i>
+                    Você ainda não criou nenhuma postagem. 
+                    <a href="{% url 'new_post' %}" class="alert-link">Crie sua primeira postagem</a> para começar a compartilhar suas ideias!
                 </div>
             {% endfor %}
         </section>
     </div>
 </main>
-
 {% endblock content %}
 
 {% block extra_js %}
@@ -158,20 +189,20 @@ function getCookie(name) {
 document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
     
-    // Inicializar tooltips do Bootstrap
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    // Inicializa os tooltips do Bootstrap
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
-    
+
     // Função para atualizar a contagem de comentários
     function updateCommentCount(postId, increment) {
-        const commentCount = document.getElementById(`comment-count-${postId}`);
-        if (commentCount) {
-            const newCount = parseInt(commentCount.textContent) + (increment ? 1 : -1);
-            commentCount.textContent = newCount;
-            const commentText = commentCount.nextElementSibling;
-            commentText.textContent = newCount === 1 ? ' comentário' : ' comentários';
+        const countElement = document.getElementById(`comment-count-${postId}`);
+        if (countElement) {
+            let count = parseInt(countElement.textContent) || 0;
+            count = increment ? count + 1 : Math.max(0, count - 1);
+            countElement.textContent = count;
+            countElement.nextElementSibling.textContent = count === 1 ? ' comentário' : ' comentários';
         }
     }
     
@@ -180,35 +211,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const deleteButton = e.target.closest('.delete-comment');
         if (deleteButton) {
             e.preventDefault();
-            const commentId = deleteButton.getAttribute('data-comment-id');
+            const commentId = deleteButton.dataset.commentId;
             const commentItem = deleteButton.closest('.comment-item');
-            const postId = commentItem.closest('.card').querySelector('[data-post-id]').dataset.postId;
+            const postId = commentItem ? commentItem.closest('.card')?.querySelector('.like-button')?.dataset.postId : null;
             
-            if (confirm('Tem certeza que deseja excluir este comentário?')) {
-                fetch(`/comment/${commentId}/delete/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove o comentário da interface
-                        commentItem.remove();
-                        // Atualiza a contagem de comentários
-                        updateCommentCount(postId, false);
-                    } else {
-                        alert('Erro ao excluir o comentário: ' + (data.error || 'Erro desconhecido'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Ocorreu um erro ao tentar excluir o comentário.');
-                });
+            if (!commentId || !confirm('Tem certeza que deseja excluir este comentário?')) {
+                return;
             }
+            
+            fetch(`/comment/${commentId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove o comentário da interface
+                    commentItem.remove();
+                    // Atualiza a contagem de comentários
+                    updateCommentCount(postId, false);
+                } else {
+                    alert('Erro ao excluir o comentário: ' + (data.error || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao tentar excluir o comentário.');
+            });
         }
     });
 
@@ -227,8 +260,13 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById(`like-count-${postId}`).textContent = data.likes_count;
+                const likeCount = document.getElementById(`like-count-${postId}`);
+                const likeText = this.querySelector('.like-text');
                 const icon = this.querySelector('i');
+                
+                if (likeCount) likeCount.textContent = data.likes_count;
+                if (likeText) likeText.textContent = data.liked ? 'Descurtir' : 'Curtir';
+                
                 icon.classList.toggle('bi-heart', !data.liked);
                 icon.classList.toggle('bi-heart-fill', data.liked);
                 icon.classList.toggle('text-danger', data.liked);

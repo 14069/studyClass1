@@ -1,82 +1,230 @@
 {% extends 'social/base.html' %}
 {% load widget_tweaks %}
 
+{% block extra_css %}
+<style>
+    /* Estilos específicos para a página de edição de postagem */
+    .post-form-container {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem auto;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .post-form-container {
+        background-color: #2d2d2d;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+    }
+
+    .form-floating > label {
+        color: #6c757d;
+    }
+
+    .dark-mode .form-floating > label {
+        color: #adb5bd;
+    }
+
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .dark-mode .form-control, 
+    .dark-mode .form-select,
+    .dark-mode .form-control:focus,
+    .dark-mode .form-select:focus {
+        background-color: #3d3d3d;
+        border-color: #4d4d4d;
+        color: #f8f9fa;
+    }
+
+    .post-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-submit {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+
+    .table-container {
+        margin-top: 3rem;
+    }
+
+    .action-buttons {
+        white-space: nowrap;
+    }
+
+    .action-buttons .btn {
+        margin: 0 2px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .post-form-container {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<form method="post" enctype="multipart/form-data" class="form-post container">
-    {% csrf_token %}
-    <div class="row">
-        <div class="col-6">
-            <label for="autor">Autor:
-                {% render_field form.autor_postagem type='text' required='required' name='autor' class='form-control' %}
-            </label>
-
-            <label for="dia">Data da Postagem:
-                {% render_field form.data_postagem type='datetime-local' required='required' name='dia' class='form-control' %}
-            </label>
-
-            <label for="titulo">Título:
-                {% render_field form.titulo_postagem type='text' required='required' name='titulo' class='form-control' %}
-            </label>
-        </div>
-
-        <div class="col-6">
-            <label for="conteudo">Conteúdo:
-                {% render_field form.conteudo_postagem type='text' required='required' name='conteudo' class='form-control' %}
-            </label>
-
-            <label for="avalia">Avaliação:
-                {% render_field form.id_avalia type='text' required='required' name='avalia' class='form-control' %}
-            </label>
-        </div>
-
-        <div class="col-12 mt-3">
-            <input type="submit" value="Salvar" class="btn btn-primary btn-submit">
+<div class="container py-4 py-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            {% if post.autor_postagem != request.user.username and not request.user.is_superuser %}
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading">Acesso Negado</h4>
+                <p>Você não tem permissão para editar esta postagem.</p>
+                <hr>
+                <p class="mb-0">Apenas o autor da postagem ou um administrador podem editar este conteúdo.</p>
+            </div>
+            <a href="{% url 'index' %}" class="btn btn-primary mt-3">
+                <i class="bi bi-arrow-left me-2"></i>Voltar para a página inicial
+            </a>
+            {% else %}
+            <div class="post-form-container" data-aos="fade-up">
+                <h2 class="text-center mb-4">Editar Postagem</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_titulo_postagem" class="form-label">Título</label>
+                        {{ form.titulo_postagem|add_class:"form-control" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_conteudo_postagem" class="form-label">Conteúdo</label>
+                        {{ form.conteudo_postagem|add_class:"form-control"|attr:"rows:5" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_id_avalia" class="form-label">Avaliação</label>
+                        {{ form.id_avalia|add_class:"form-select" }}
+                    </div>
+                    
+                    <div class="post-actions">
+                        <a href="{% url 'my_posts' %}" class="btn btn-outline-secondary btn-cancel">
+                            <i class="bi bi-x-lg me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="bi bi-save me-2"></i>Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="table-container mt-5" data-aos="fade-up" data-aos-delay="100">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Minhas Postagens</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">#</th>
+                                        <th>Título</th>
+                                        <th class="d-none d-md-table-cell">Autor</th>
+                                        <th class="d-none d-lg-table-cell">Data</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for post in posts %}
+                                        <tr>
+                                            <td class="text-center">{{ forloop.counter }}</td>
+                                            <td>
+                                                <div class="fw-semibold">{{ post.titulo_postagem|truncatechars:30 }}</div>
+                                                <small class="text-muted d-md-none">{{ post.autor_postagem }} • {{ post.data_postagem|date:"d/m/Y H:i" }}</small>
+                                            </td>
+                                            <td class="d-none d-md-table-cell">{{ post.autor_postagem }}</td>
+                                            <td class="d-none d-lg-table-cell">{{ post.data_postagem|date:"d/m/Y H:i" }}</td>
+                                            <td class="text-center action-buttons">
+                                                <a href="{% url 'editar_post' post.id_postagem %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <a href="{% url 'deleta_post' post.id_postagem %}" class="btn btn-sm btn-outline-danger" title="Excluir" 
+                                                   onclick="return confirm('Tem certeza que deseja excluir esta postagem?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                                                    Nenhuma postagem encontrada.
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% if posts.has_other_pages %}
+                    <div class="card-footer bg-transparent">
+                        <nav aria-label="Navegação de páginas">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if posts.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.previous_page_number }}" aria-label="Anterior">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for i in posts.paginator.page_range %}
+                                    {% if posts.number == i %}
+                                        <li class="page-item active" aria-current="page">
+                                            <span class="page-link">{{ i }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if posts.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ posts.next_page_number }}" aria-label="Próximo">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
-</form>
-
-<div class="posts-table-container mt-5 container">
-    <h1>Editar Postagem</h1>
-    <table class="table table-striped table-responsive">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Autor</th>
-                <th>Data</th>
-                <th>Título</th>
-                <th>Conteúdo</th>
-                <th>Editar</th>
-                <th>Excluir</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for post in posts %}
-            <tr>
-                <td data-label="Id">{{ post.id_postagem }}</td>
-                <td data-label="Autor">{{ post.autor_postagem }}</td>
-                <td data-label="Data">{{ post.data_postagem }}</td>
-                <td data-label="Título">{{ post.titulo_postagem }}</td>
-                <td data-label="Conteúdo">{{ post.conteudo_postagem }}</td>
-                <td data-label="Editar">
-                    <a href="{% url 'editar_post' post.id_postagem %}">
-                        <!-- Ícone SVG para editar -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="rgb(255,150,20)" class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
-                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
-                        </svg>
-                    </a>
-                </td>
-                <td data-label="Excluir">
-                    <a href="{% url 'deleta_post' post.id_postagem %}">
-                        <!-- Ícone SVG para excluir -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="rgb(255,50,20)" class="bi bi-archive-fill" viewBox="0 0 16 16">
-                            <path d="M12.643 15C13.979 15 15 13.845 15 12.5V5H1v7.5C1 13.845 2.021 15 3.357 15zM5.5 7h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1M.8 1a.8.8 0 0 0-.8.8V3a.8.8 0 0 0 .8.8h14.4A.8.8 0 0 0 16 3V1.8a.8.8 0 0 0-.8-.8z"/>
-                        </svg>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
-
-{% endblock content %}
+{% endblock %}

@@ -17,9 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
-from socialapp.views import index, sobre, home ,contato 
+from socialapp.views import index, sobre, home, contato 
 from socialapp.views import new_avalia, editar_avalia, deleta_avalia
-from socialapp.views import new_post, deleta_post, editar_post, like_post, add_comment
+from socialapp.views import new_post, deleta_post, editar_post, like_post, add_comment, delete_comment, my_posts, perfil_usuario, editar_perfil
 
 urlpatterns = [
     path('', home, name='home'),
@@ -38,6 +38,11 @@ urlpatterns = [
     path('deleta_post/<int:id>', deleta_post, name='deleta_post'),
     path('post/<int:post_id>/like/', like_post, name='like_post'),
     path('post/<int:post_id>/comment/', add_comment, name='add_comment'),
+    path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
+    path('minhas-postagens/', my_posts, name='my_posts'),
+    path('perfil/', perfil_usuario, name='perfil_usuario'),
+    path('perfil/<str:username>/', perfil_usuario, name='view_profile'),
+    path('perfil/editar/', editar_perfil, name='editar_perfil'),
 
     path('', include('usuario.urls')),
 

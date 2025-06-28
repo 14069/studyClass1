@@ -1,125 +1,211 @@
+{% extends 'social/base.html' %}
 {% load static %}
-{% load widget_tweaks %}
 
+{% block title %}Sobre - {{ block.super }}{% endblock %}
 
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="Conheça mais sobre o Study Class, uma plataforma de rede social moderna e segura para compartilhar experiências e conectar pessoas." />
-        <meta name="author" content="Study Class Team" />
-        <title>Sobre - Study Class</title>
-        <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
-        <!-- Font Awesome icons (free version)-->
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-        <!-- Google fonts-->
-        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
-        <!-- Core theme CSS (includes Bootstrap)-->
-        <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
-        <link href="{% static 'bootstrap-icons/font/bootstrap-icons.css' %}" rel="stylesheet">
-    </head>
-    <body>
-        <!-- Navigation-->
-        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
-            <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="{% url 'index' %}">Study Class</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                    Menu
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'index' %}">Home</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'sobre' %}">Sobre</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'new_post' %}">Nova Postagem</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'contato' %}">Contato</a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        <!-- Page Header-->
-        <header class="masthead" style="background-image: url({% static 'assets/img/about-bg.jpg' %})">
-            <div class="container position-relative px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5 justify-content-center">
-                    <div class="col-md-10 col-lg-8 col-xl-7">
-                        <div class="page-heading">
-                            <h1>Sobre Nós</h1>
-                            <span class="subheading">Conectando pessoas e compartilhando experiências</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-        <!-- Main Content-->
-        <main class="mb-4">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5 justify-content-center">
-                    <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>Bem-vindo ao Study Class, uma plataforma moderna e intuitiva para conectar pessoas e compartilhar experiências. Nosso objetivo é criar um espaço seguro e acolhedor onde você pode:</p>
-                        <ul class="list-unstyled">
-                            <li class="mb-3">
-                                <span class="bi bi-check-circle-fill text-primary me-2"></span>
-                                <strong>Compartilhar seus momentos</strong> - Publique suas experiências, fotos e pensamentos com seus amigos e seguidores
-                            </li>
-                            <li class="mb-3">
-                                <span class="bi bi-chat-square-text-fill text-primary me-2"></span>
-                                <strong>Interagir com outros usuários</strong> - Comente, curta e compartilhe o conteúdo que você gosta
-                            </li>
-                            <li class="mb-3">
-                                <span class="bi bi-person-plus-fill text-primary me-2"></span>
-                                <strong>Conectar-se com pessoas</strong> - Faça novas amizades e expanda sua rede social
-                            </li>
-                            <li class="mb-3">
-                                <span class="bi bi-shield-lock-fill text-primary me-2"></span>
-                                <strong>Privacidade e segurança</strong> - Controle quem pode ver seu conteúdo e mantenha suas informações seguras
-                            </li>
-                        </ul>
-                        <p class="mt-4">Nossa missão é criar uma comunidade online positiva e inclusiva, onde todos se sintam confortáveis para expressar suas ideias e construir relacionamentos significativos.</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-        <!-- Footer -->
-        <footer class="bg-light py-5">
-            <div class="container">
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <h5 class="text-dark mb-3">Sobre o Study Class</h5>
-                        <p class="text-muted">
-                            Uma plataforma para compartilhar experiências e conectar-se com pessoas. Junte-se a nós e faça parte desta comunidade incrível!
-                        </p>
-                    </div>
-                    <div class="col-md-4">
-                        <h5 class="text-dark mb-3">Links Rápidos</h5>
-                        <ul class="list-unstyled">
-                            <li><a href="{% url 'sobre' %}" class="text-muted"><i class="bi bi-chevron-right"></i> Sobre Nós</a></li>
-                            <li><a href="{% url 'contato' %}" class="text-muted"><i class="bi bi-chevron-right"></i> Contato</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-4">
-                        <h5 class="text-dark mb-3">Siga-nos</h5>
-                        <div class="d-flex gap-3 mb-3">
-                            <a href="https://x.com/studyclassbr" class="text-muted" target="_blank" title="Siga no X/Twitter">
-                                <i class="bi bi-x fs-4"></i>
-                            </a>
-                            <a href="https://facebook.com/studyclassbr" class="text-muted" target="_blank" title="Siga no Facebook">
-                                <i class="bi bi-facebook fs-4"></i>
-                            </a>
-                            <a href="https://github.com/studyclassbr" class="text-muted" target="_blank" title="Acesse nosso GitHub">
-                                <i class="bi bi-github fs-4"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+{% block extra_css %}
+<style>
+    /* Estilos específicos para a página Sobre */
+    .about-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        padding: 6rem 0 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .about-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'assets/img/pattern-shapes.png' %}") center/cover;
+        opacity: 0.1;
+        pointer-events: none;
+    }
+    
+    .about-header h1 {
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    
+    .about-header p {
+        font-size: 1.25rem;
+        opacity: 0.9;
+    }
+    
+    .feature-box {
+        padding: 2.5rem;
+        border-radius: 12px;
+        background-color: var(--bs-white);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.05);
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .feature-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        color: #4e73df;
+    }
+    
+    .team-member {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .team-member img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+        border: 5px solid #fff;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .dark-mode .feature-box {
+        background-color: var(--bs-dark);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .dark-mode .feature-box h3 {
+        color: var(--bs-white);
+    }
+</style>
+{% endblock %}
 
-                <div class="row mt-4">
-                    <div class="col text-center">
-                        <p class="text-muted mb-1">&copy; {% now 'Y' %} Study Class. Todos os direitos reservados.</p>
+{% block header %}
+<!-- Page Header-->
+<header class="about-header">
+    <div class="container px-4 px-lg-5 text-center">
+        <h1 class="display-4 fw-bold">Sobre o Study Class</h1>
+        <p class="lead">Conectando pessoas e compartilhando conhecimento de forma simples e eficiente</p>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<!-- Sobre Nós -->
+<section class="py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="row gx-4 gx-lg-5 align-items-center">
+            <div class="col-lg-6">
+                <h2 class="fw-bolder mb-4">Nossa Missão</h2>
+                <p class="lead">No Study Class, acreditamos que o compartilhamento de conhecimento é a chave para o crescimento pessoal e profissional. Nossa missão é fornecer uma plataforma onde estudantes, profissionais e entusiastas possam se conectar, aprender e crescer juntos.</p>
+                <p>Fundada em 2023, nossa plataforma já conectou milhares de pessoas em todo o Brasil, criando uma comunidade vibrante e colaborativa.</p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-start">
+                    <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'index' %}">Comece Agora</a>
+                    <a class="btn btn-outline-secondary btn-lg px-4" href="{% url 'contato' %}">Fale Conosco</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img class="img-fluid rounded" src="{% static 'assets/img/about-hero.jpg' %}" alt="Comunidade Study Class" />
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recursos -->
+<section class="py-5 bg-light">
+    <div class="container px-4 px-lg-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bolder">Nossos Recursos</h2>
+            <p class="lead text-muted">Tudo o que você precisa para compartilhar e aprender</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-box" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-icon">
+                        <i class="bi bi-chat-square-text"></i>
+                    </div>
+                    <h3>Postagens Interativas</h3>
+                    <p>Compartilhe suas ideias, experiências e conhecimento com nossa plataforma de postagens rica em recursos.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3>Comunidade Ativa</h3>
+                    <p>Conecte-se com pessoas que compartilham seus interesses e amplie sua rede de contatos profissionais.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h3>Segurança Garantida</h3>
+                    <p>Proteção avançada de dados e privacidade para que você possa compartilhar com tranquilidade.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Time -->
+<section class="py-5">
+    <div class="container px-4 px-lg-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bolder">Conheça Nossa Equipe</h2>
+            <p class="lead text-muted">Os profissionais por trás do Study Class</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="team-member" data-aos="zoom-in" data-aos-delay="100">
+                    <img src="{% static 'assets/img/team-1.jpg' %}" class="img-fluid rounded-circle mb-3" alt="Membro da equipe">
+                    <h4>João Silva</h4>
+                    <p class="text-muted">CEO & Fundador</p>
+                    <div class="social-links">
+                        <a href="#" class="text-muted me-2"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-muted"><i class="bi bi-github"></i></a>
                     </div>
                 </div>
             </div>
-        </footer>       
-    </body>
-</html>
+            <div class="col-md-4">
+                <div class="team-member" data-aos="zoom-in" data-aos-delay="200">
+                    <img src="{% static 'assets/img/team-2.jpg' %}" class="img-fluid rounded-circle mb-3" alt="Membro da equipe">
+                    <h4>Maria Santos</h4>
+                    <p class="text-muted">Diretora de Tecnologia</p>
+                    <div class="social-links">
+                        <a href="#" class="text-muted me-2"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-muted"><i class="bi bi-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="team-member" data-aos="zoom-in" data-aos-delay="300">
+                    <img src="{% static 'assets/img/team-3.jpg' %}" class="img-fluid rounded-circle mb-3" alt="Membro da equipe">
+                    <h4>Carlos Oliveira</h4>
+                    <p class="text-muted">Diretor de Marketing</p>
+                    <div class="social-links">
+                        <a href="#" class="text-muted me-2"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-muted"><i class="bi bi-github"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 bg-primary text-white">
+    <div class="container px-4 px-lg-5 text-center">
+        <h2 class="fw-bolder mb-4">Pronto para se juntar à nossa comunidade?</h2>
+        <p class="lead mb-4">Cadastre-se agora e comece a compartilhar suas experiências com milhares de pessoas.</p>
+        <a class="btn btn-light btn-lg" href="{% url 'index' %}">Comece Agora</a>
+    </div>
+</section>
+{% endblock %}
