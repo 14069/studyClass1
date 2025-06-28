@@ -16,8 +16,8 @@ class Postagem(models.Model):
     id_postagem = models.AutoField( primary_key= True)
     autor_postagem= models.CharField(max_length=255)
     data_postagem =models.DateTimeField()
-    titulo_postagem= models.CharField(max_length=255)
-    conteudo_postagem=models.TextField()
+    titulo_postagem = models.CharField(max_length=200)
+    conteudo_postagem = models.TextField()  
     id_avalia = models.ForeignKey(Avalia, models.DO_NOTHING,null=True,blank=True, db_column='id_avalia')
 
     def __str__(self):

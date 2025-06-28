@@ -107,8 +107,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -120,9 +118,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS=[
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'socialapp', 'static'),
 ]
 
 # Default primary key field type
@@ -131,4 +129,8 @@ STATICFILES_DIRS=[
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL='login'
+LOGIN_REDIRECT_URL = 'index'  # URL name da página principal dos posts
+LOGIN_URL = 'login'  # URL name da página de login
+
+LANGUAGE_CODE = 'pt-br'
 

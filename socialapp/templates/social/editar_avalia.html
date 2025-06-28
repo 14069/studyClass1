@@ -1,40 +1,62 @@
 {% extends 'social/base.html' %}
 
 {% block content %}
-    <form method="post"   enctype="multipart/form-data">
-    {% csrf_token %}
-{{form}}
-        <input type="submit" value="Editar" class="btn btn-warning">
-    </form>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">{% if 'editar' in request.path %}Editar{% else %}Deletar{% endif %} Avaliação</h2>
+        </div>
 
-    <div>
-    <h1> Editar Avaliação</h1>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="mb-4">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.as_p }}
+                </div>
+                <button type="submit" 
+                        class="btn {% if 'editar' in request.path %}btn-warning{% else %}btn-danger{% endif %}">
+                    {% if 'editar' in request.path %}Editar{% else %}Deletar{% endif %}
+                </button>
+            </form>
 
-      <table class="table">
-        <th>
-        <tr>
-            <td>Id</td>
-            <td>Status da Avaliação</td>
-            <td>Editar</td>
-            <td>Excluir</td>
-        </tr>
-        </th>
-            {% for ava in avas %}
-                <tr>
-                    <td>{{ ava.id_avalia }}</td>
-                    <td>{{ ava.valor_avalia }}</td>
-                    <td><a href="{% url 'editar_avalia' ava.id_avalia %}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="rgb(255,150,20)" class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
-  <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
-</svg></a></td>
-                    <td><a href="{% url 'deleta_avalia' ava.id_avalia %}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="rgb(255,50,20)" class="bi bi-archive-fill" viewBox="0 0 16 16">
-  <path d="M12.643 15C13.979 15 15 13.845 15 12.5V5H1v7.5C1 13.845 2.021 15 3.357 15zM5.5 7h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1M.8 1a.8.8 0 0 0-.8.8V3a.8.8 0 0 0 .8.8h14.4A.8.8 0 0 0 16 3V1.8a.8.8 0 0 0-.8-.8z"/>
-</svg></a></td>
-                </tr>
-            {% endfor %}
-
-        </table>
-
+            <h4 class="mb-3">Lista de Avaliações</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Status da Avaliação</th>
+                            <th>Editar</th>
+                            <th>Excluir</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ava in avas %}
+                        <tr>
+                            <td>{{ ava.id_avalia }}</td>
+                            <td>{{ ava.valor_avalia }}</td>
+                            <td>
+                                <a href="{% url 'editar_avalia' ava.id_avalia %}" 
+                                   class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'deleta_avalia' ava.id_avalia %}" 
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash3-fill"></i> Excluir
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">Nenhuma avaliação cadastrada.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
-
-{% endblock content %}
+</div>
+{% endblock %}

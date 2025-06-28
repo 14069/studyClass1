@@ -1,47 +1,90 @@
 {% extends 'social/base.html' %}
+{% load widget_tweaks %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+    <div class="container py-5">
         <div class="row">
-            <div class="col-6">
-                {{ form}}
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Nova Avaliação</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="{{ form.valor_avalia.id_for_label }}" class="form-label">Valor da Avaliação</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">⭐</span>
+                                    {% render_field form.valor_avalia class="form-control" min="1" max="5" %}
+                                </div>
+                                <div class="form-text">Avalie de 1 a 5 estrelas</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="{{ form.comentario.id_for_label }}" class="form-label">Comentário</label>
+                                {% render_field form.comentario class="form-control" rows="4" %}
+                            </div>
+                            <button type="submit" class="btn btn-primary">Salvar Avaliação</button>
+                            <a href="{% url 'index' %}" class="btn btn-secondary">Cancelar</a>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="col-6">
-                 <input type="submit" value="Salvar" class="btn btn-primary">
-            </div>
-
         </div>
 
-    </form>
-
-    <div>
-        <h1>Avaliações</h1>
-        <table class="table">
-        <th>
-        <tr>
-            <td>Id</td>
-            <td>Status da Avaliação</td>
-            <td>Editar</td>
-            <td>Excluir</td>
-        </tr>
-        </th>
-            {% for ava in avas %}
-                <tr>
-                    <td>{{ ava.id_avalia }}</td>
-                    <td>{{ ava.valor_avalia }}</td>
-                    <td><a href="{% url 'editar_avalia' ava.id_avalia %}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="rgb(255,150,20)" class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
-  <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
-</svg></a></td>
-                    <td><a href="{% url 'deleta_avalia' ava.id_avalia %}"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="rgb(255,50,20)" class="bi bi-archive-fill" viewBox="0 0 16 16">
-  <path d="M12.643 15C13.979 15 15 13.845 15 12.5V5H1v7.5C1 13.845 2.021 15 3.357 15zM5.5 7h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1M.8 1a.8.8 0 0 0-.8.8V3a.8.8 0 0 0 .8.8h14.4A.8.8 0 0 0 16 3V1.8a.8.8 0 0 0-.8-.8z"/>
-</svg></a></td>
-                </tr>
-            {% endfor %}
-
-        </table>
-
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Avaliações</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Valor</th>
+                                        <th>Comentário</th>
+                                        <th>Data</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ava in avas %}
+                                    <tr>
+                                        <td>{{ ava.id_avalia }}</td>
+                                        <td>
+                                            <span class="badge bg-warning text-dark">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= ava.valor_avalia %}
+                                                        ⭐
+                                                    {% else %}
+                                                        ⭐
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                        </td>
+                                        <td>{{ ava.comentario|truncatechars:50 }}</td>
+                                        <td>{{ ava.data_avalia|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'editar_avalia' ava.id_avalia %}" class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil-square"></i> Editar
+                                                </a>
+                                                <a href="{% url 'deleta_avalia' ava.id_avalia %}" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta avaliação?')">
+                                                    <i class="bi bi-trash"></i> Excluir
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-
 {% endblock content %}

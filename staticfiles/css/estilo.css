@@ -1,0 +1,24 @@
+footer{
+	height: 200px;
+}
+.coluna{
+	height: 150px;
+}
+.titulo{
+	text-align: center;
+	font-size: 30px;
+}
+#coluna2{
+	border-top-right-radius: 80px;
+}
+#logo{
+	font-family: cursive;
+	color: rgb(100, 100, 200);
+	text-decoration: none;
+	font-size: 40px;
+
+}
+ul{
+
+	list-style-image: url('logo.png');
+}
