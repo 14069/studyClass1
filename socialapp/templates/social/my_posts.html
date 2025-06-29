@@ -1,6 +1,12 @@
 {% extends 'social/base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load dict_filters %}
+
+{% block extra_head %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+{% endblock %}
 
 {% block content %}
 <main class="container my-5">
@@ -94,6 +100,13 @@
                         </h4>
                         <div class="card-text">
                             <p>{{ postagem.conteudo_postagem|linebreaksbr }}</p>
+                            
+                            <!-- Avaliação por estrelas -->
+                            {% if user.is_authenticated %}
+                                {% with user_rating=user_ratings|get_item:postagem.id_postagem %}
+                                    {% include 'social/includes/star_rating.html' with post=postagem user_rating=user_rating %}
+                                {% endwith %}
+                            {% endif %}
                             
                             {% if postagem.imagem_postagem %}
                             <div class="post-image-container mb-3">
@@ -194,6 +207,19 @@
 {% endblock content %}
 
 {% block extra_js %}
+<style>
+    .star-container {
+        line-height: 1;
+    }
+    .star-container .bi {
+        margin-right: 2px;
+        transition: all 0.2s;
+    }
+    .star-container .bi-star-fill {
+        color: #ffc107;
+    }
+</style>
+
 <script>
 // Função para obter o token CSRF
 function getCookie(name) {

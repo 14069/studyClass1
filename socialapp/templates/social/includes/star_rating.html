@@ -1,0 +1,56 @@
+{% load static %}
+
+<style>
+    /* Estilos para as estrelas de avaliação */
+    .star-container {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .star-container i.bi {
+        color: #dee2e6; /* Cor padrão das estrelas não preenchidas */
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: color 0.2s;
+        margin-right: 2px;
+    }
+    
+    .star-container i.bi-star-fill.text-warning {
+        color: #ffc107 !important; /* Cor das estrelas preenchidas */
+    }
+    
+    .star-container i:hover {
+        transform: scale(1.2);
+    }
+    
+    .rating-text {
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="star-rating mt-2" data-post-id="{{ post.id_postagem }}">
+    <div class="d-flex align-items-center">
+        <div class="star-container me-2">
+            {% for i in "12345"|make_list %}
+                {% with i=i|add:0 %}
+                    <i class="bi {% if user_rating and i <= user_rating %}bi-star-fill text-warning{% else %}bi-star{% endif %}"
+                       data-rating="{{ i }}" 
+                       style="cursor: pointer; font-size: 1.2rem; margin-right: 2px;"
+                       onmouseover="highlightStars(this, {{ i }});"
+                       onmouseout="resetStars(this, {{ user_rating|default:0 }});"
+                       onclick="ratePost({{ post.id_postagem }}, {{ i }});">
+                    </i>
+                {% endwith %}
+            {% endfor %}
+        </div>
+        <small class="rating-text text-muted ms-1">
+            {% if post.avg_rating %}
+                {{ post.avg_rating|floatformat:1 }} ({{ post.rating_count }} avaliação{{ post.rating_count|pluralize:"s" }})
+            {% else %}
+                Sem avaliações
+            {% endif %}
+        </small>
+    </div>
+</div>
+
+

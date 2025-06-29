@@ -4,7 +4,10 @@ from socialapp.models import Avalia, Postagem, Perfil, Telefone, Perfil_post, Co
 class AvaliaForms(forms.ModelForm):
     class Meta:
         model = Avalia
-        fields ="__all__"
+        fields = ['valor_avalia']
+        widgets = {
+            'valor_avalia': forms.HiddenInput(),
+        }
 
 
 class PostagemForms(forms.ModelForm):

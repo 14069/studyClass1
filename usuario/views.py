@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib import messages
-from socialapp.models import Postagem, Perfil
+from django.db.models import Avg, Count
+from socialapp.models import Postagem, Perfil, Avalia
 from .forms import UsuarioForm, EditarPerfilForm
 
 User = get_user_model()
@@ -33,8 +34,24 @@ def perfil_usuario(request, username=None):
     except Perfil.DoesNotExist:
         user_profile = None
     
-    # Busca as postagens do usuário
+    # Busca as postagens do usuário com avaliações
     posts = Postagem.objects.filter(autor_postagem=user).order_by('-data_postagem')
+    
+    # Prepara as avaliações médias e contagens para cada postagem
+    for post in posts:
+        avaliacoes = Avalia.objects.filter(postagem=post)
+        post.media_avaliacoes = avaliacoes.aggregate(media=Avg('valor_avalia'))['media'] or 0
+        post.total_avaliacoes = avaliacoes.count()
+    
+    # Prepara as avaliações do usuário atual para cada postagem
+    user_ratings = {}
+    if request.user.is_authenticated:
+        for post in posts:
+            try:
+                avaliacao = Avalia.objects.get(user=request.user, postagem=post)
+                user_ratings[post.id_postagem] = avaliacao.valor_avalia
+            except Avalia.DoesNotExist:
+                user_ratings[post.id_postagem] = 0
     
     # Busca todos os perfis para exibir as fotos
     perfis = Perfil.objects.select_related('user').all()
@@ -45,6 +62,7 @@ def perfil_usuario(request, username=None):
         'is_own_profile': is_own_profile,
         'posts': posts,
         'perfis': perfis,
+        'user_ratings': user_ratings,
     }
     
     return render(request, 'usuario/perfil_usuario.html', context)

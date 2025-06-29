@@ -3,6 +3,7 @@
 * Copyright 2013-2023 Start Bootstrap
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-clean-blog/blob/master/LICENSE)
 */
+console.log('scripts.js carregado com sucesso!');
 document.addEventListener('DOMContentLoaded', function() {
     // Adiciona animação ao focar nos campos
     const formInputs = document.querySelectorAll('.form-control');

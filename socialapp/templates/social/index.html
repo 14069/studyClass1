@@ -1,6 +1,12 @@
 {% extends 'social/base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load dict_filters %}
+
+{% block extra_head %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+{% endblock %}
 
 {% block content %}
 <main class="container my-5">
@@ -91,9 +97,15 @@
                         <h4 class="card-title fw-bold text-primary">
                             {{ postagem.titulo_postagem }}
                         </h4>
-                        <p class="card-text">
-                            {{ postagem.conteudo_postagem|linebreaksbr }}
-                        </p>
+                        <p class="card-text">{{ postagem.conteudo_postagem|linebreaksbr }}</p>
+                        
+                        <!-- Avaliação por estrelas -->
+                        {% if user.is_authenticated %}
+                            {% with user_rating=user_ratings|get_item:postagem.id_postagem %}
+                                {% include 'social/includes/star_rating.html' with post=postagem user_rating=user_rating %}
+                            {% endwith %}
+                        {% endif %}
+                        
                         <!-- Imagem do post -->
                         {% if postagem.imagem_postagem %}
                         <div class="post-image-container mb-3">
@@ -273,11 +285,49 @@
     .dark-mode .post-image-container img {
         filter: brightness(0.9);
     }
+    
+    /* Estilos existentes */
+    .star-container {
+        line-height: 1;
+    }
+    .star-container .bi {
+        margin-right: 2px;
+        transition: all 0.2s;
+    }
+    .star-container .bi-star-fill {
+        color: #ffc107;
+    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+console.log('Script de avaliação carregado');
+
+// Verifica se o DOM já foi carregado
+console.log('DOM carregado:', document.readyState);
+
+// Verifica se o token CSRF está disponível
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+console.log('Token CSRF disponível:', !!csrfToken);
+// Obter o token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+console.log('CSRF Token:', csrftoken ? 'Encontrado' : 'Não encontrado');
+
 // Adiciona funcionalidade para abrir a imagem em um modal ao clicar nela
 document.addEventListener('DOMContentLoaded', function() {
     // Adiciona evento de clique nas imagens das postagens
@@ -587,6 +637,62 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Função para atualizar a contagem de comentários
+    function updateCommentCount(postId, change) {
+        const countElement = document.getElementById(`comment-count-${postId}`);
+        if (countElement) {
+            const currentCount = parseInt(countElement.textContent) || 0;
+            const newCount = currentCount + change;
+            countElement.textContent = newCount;
+            
+            // Atualiza o texto para singular/plural
+            const textElement = document.getElementById(`comment-text-${postId}`);
+            if (textElement) {
+                textElement.textContent = newCount === 1 ? 'comentário' : 'comentários';
+            }
+        }
+    }
+
+    // Função para adicionar um novo comentário à lista
+    function addNewComment(postId, comment) {
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        const noComments = document.getElementById(`no-comments-${postId}`);
+        
+        // Remove a mensagem de "Nenhum comentário" se existir
+        if (noComments) {
+            noComments.remove();
+        }
+        
+        // Cria o elemento do novo comentário
+        const commentElement = document.createElement('div');
+        commentElement.className = 'd-flex mb-3';
+        commentElement.innerHTML = `
+            <div class="flex-shrink-0">
+                <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
+            </div>
+            <div class="ms-2">
+                <div class="d-flex align-items-center">
+                    <strong class="me-2">${comment.user}</strong>
+                    ${comment.is_owner ? `
+                    <button class="btn btn-link text-danger p-0 ms-2 delete-comment" 
+                            data-comment-id="${comment.id}"
+                            data-bs-toggle="tooltip" 
+                            title="Excluir comentário">
+                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+                    </button>
+                    ` : ''}
+                </div>
+                <p class="mb-1">${comment.content}</p>
+                <small class="text-muted">${comment.created_at}</small>
+            </div>
+        `;
+        
+        // Adiciona o novo comentário ao início da lista
+        if (commentsList) {
+            commentsList.insertBefore(commentElement, commentsList.firstChild);
+        }
+    }
+
     // --- LÓGICA DE COMENTAR ---
     document.addEventListener('submit', function(event) {
         const form = event.target.closest('.comment-form');
@@ -610,14 +716,14 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-CSRFToken': csrftoken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
             credentials: 'same-origin'
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Erro na resposta do servidor');
+                throw new Error(`Erro HTTP: ${response.status}`);
             }
             return response.json();
         })
@@ -675,5 +781,817 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// ========================================
+// CÓDIGO DAS AVALIAÇÕES POR ESTRELAS
+// ========================================
+
+// Função para destacar as estrelas ao passar o mouse
+function highlightStars(element, rating) {
+    console.log('highlightStars chamado com rating:', rating);
+    if (!element || !element.parentElement) {
+        console.error('Elemento ou elemento pai não encontrado');
+        return;
+    }
+    
+    const stars = element.parentElement.querySelectorAll('.bi-star, .bi-star-fill');
+    console.log('Estrelas encontradas:', stars.length);
+    
+    stars.forEach(star => {
+        const starRating = parseInt(star.getAttribute('data-rating'));
+        console.log(`Estrela ${starRating}: deve estar preenchida? ${starRating <= rating}`);
+        
+        if (starRating <= rating) {
+            star.classList.remove('bi-star');
+            star.classList.add('bi-star-fill', 'text-warning');
+        } else {
+            star.classList.remove('bi-star-fill', 'text-warning');
+            star.classList.add('bi-star');
+        }
+    });
+}
+
+// Função para redefinir as estrelas ao remover o mouse
+function resetStars(element, userRating) {
+    console.log('resetStars chamado com userRating:', userRating);
+    if (!element || !element.parentElement) {
+        console.error('Elemento ou elemento pai não encontrado');
+        return;
+    }
+    
+    const stars = element.parentElement.querySelectorAll('.bi-star, .bi-star-fill');
+    console.log('Estrelas encontradas para reset:', stars.length);
+    
+    stars.forEach(star => {
+        const starRating = parseInt(star.getAttribute('data-rating'));
+        console.log(`Reset estrela ${starRating}: userRating=${userRating}, deve estar preenchida? ${userRating && starRating <= userRating}`);
+        
+        if (userRating && starRating <= userRating) {
+            star.classList.remove('bi-star');
+            star.classList.add('bi-star-fill', 'text-warning');
+        } else {
+            star.classList.remove('bi-star-fill', 'text-warning');
+            star.classList.add('bi-star');
+        }
+    });
+}
+
+// Função para avaliar um post
+function ratePost(postId, rating) {
+    console.log('ratePost chamado com postId:', postId, 'rating:', rating);
+    
+    if (!postId) {
+        console.error('ID do post não fornecido');
+        showAlert('Erro: ID do post não encontrado', 'danger');
+        return Promise.reject('ID do post não fornecido');
+    }
+    
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!csrftoken) {
+        console.error('Token CSRF não encontrado');
+        showAlert('Erro de segurança. Por favor, recarregue a página e tente novamente.', 'danger');
+        return Promise.reject('Token CSRF não encontrado');
+    }
+    
+    // Mostra um feedback visual imediato
+    const starContainer = document.querySelector(`.star-rating[data-post-id="${postId}"]`);
+    if (!starContainer) {
+        console.error('Container de estrelas não encontrado para o post:', postId);
+        return Promise.reject('Container de estrelas não encontrado');
+    }
+    
+    // Armazena a avaliação anterior para possível rollback
+    const previousRating = starContainer.getAttribute('data-current-rating') || '0';
+    
+    // Desabilita as estrelas durante o envio
+    const stars = starContainer.querySelectorAll('.bi-star, .bi-star-fill');
+    stars.forEach(star => {
+        star.style.pointerEvents = 'none';
+        star.style.transition = 'all 0.2s ease-in-out';
+    });
+    
+    // Adiciona classe de carregamento
+    starContainer.classList.add('rating-loading');
+    
+    // Atualiza o texto para mostrar carregamento
+    const ratingText = starContainer.querySelector('.rating-text');
+    const originalText = ratingText ? ratingText.textContent : '';
+    if (ratingText) {
+        ratingText.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Avaliando...';
+    }
+    
+    console.log('Atualizando avaliação para', rating, 'estrelas no post', postId);
+    
+    // Atualiza visualmente as estrelas com animação
+    let animationDelay = 0;
+    stars.forEach(star => {
+        const starRating = parseInt(star.getAttribute('data-rating'));
+        const shouldBeFilled = starRating <= rating;
+        
+        // Adiciona um pequeno atraso para cada estrela para um efeito de onda
+        setTimeout(() => {
+            if (shouldBeFilled) {
+                star.classList.remove('bi-star');
+                star.classList.add('bi-star-fill', 'text-warning');
+                star.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    star.style.transform = 'scale(1)';
+                }, 200);
+            } else {
+                star.classList.remove('bi-star-fill', 'text-warning');
+                star.classList.add('bi-star');
+                star.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    star.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }, animationDelay);
+        
+        // Incrementa o atraso para o próximo efeito de onda
+        animationDelay += 50;
+    });
+    
+    // Envia a avaliação para o servidor
+    return fetch(`/post/${postId}/rate/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ rating: rating })
+    })
+    .then(async response => {
+        const data = await response.json().catch(() => ({
+            success: false,
+            error: 'Resposta inválida do servidor'
+        }));
+        
+        if (!response.ok) {
+            // Se a resposta não estiver OK, lança um erro com a mensagem do servidor
+            const errorMsg = data.error || `Erro ${response.status}: ${response.statusText}`;
+            throw new Error(errorMsg);
+        }
+        
+        return data;
+    })
+    .then(data => {
+        if (data && data.success) {
+            // Atualiza a exibição da classificação com os dados do servidor
+            if (ratingText) {
+                const formattedAvg = parseFloat(data.avg_rating).toFixed(1).replace('.', ',');
+                ratingText.innerHTML = `
+                    <span class="average-rating">${formattedAvg}</span>
+                    <small class="text-muted ms-1">
+                        (${formatNumber(data.rating_count)} avaliação${data.rating_count !== 1 ? 'es' : ''})
+                    </small>
+                `;
+            }
+            
+            // Atualiza a avaliação atual no container
+            starContainer.setAttribute('data-current-rating', data.user_rating || '0');
+            
+            console.log('Avaliação salva com sucesso:', data);
+            showAlert('Avaliação salva com sucesso!', 'success');
+            
+            return data; // Retorna os dados para possível uso posterior
+        } else {
+            const errorMsg = data?.error || 'Erro desconhecido ao processar sua avaliação';
+            console.error('Erro ao avaliar o post:', errorMsg);
+            throw new Error(errorMsg);
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao avaliar o post:', error);
+        
+        // Mostra mensagem de erro para o usuário
+        const errorMessage = error.message || 'Erro ao processar sua avaliação';
+        showAlert(`Erro: ${errorMessage}`, 'danger');
+        
+        // Reverte para a avaliação anterior
+        if (ratingText) {
+            ratingText.textContent = originalText;
+        }
+        
+        // Força o recarregamento das avaliações para garantir consistência
+        loadRatings(postId);
+        
+        // Propaga o erro para quem estiver esperando esta Promise
+        throw error;
+    })
+    .finally(() => {
+        // Reativa as estrelas após o processamento
+        stars.forEach(star => {
+            star.style.pointerEvents = 'auto';
+            star.style.transition = ''; // Remove a transição para evitar efeitos indesejados
+        });
+        
+        // Remove a classe de carregamento
+        starContainer.classList.remove('rating-loading');
+    });
+}
+
+// Função para formatar números com separadores de milhar
+function formatNumber(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+// Função para atualizar a interface do usuário com as avaliações
+function updateRatingUI(postId, avgRating, ratingCount, userRating) {
+    console.log(`Atualizando UI para o post ${postId}:`, { avgRating, ratingCount, userRating });
+    
+    const container = document.querySelector(`.star-rating[data-post-id="${postId}"]`);
+    if (!container) {
+        console.error(`Container não encontrado para o post ${postId}`);
+        return;
+    }
+    
+    // Adiciona classe de animação
+    container.classList.add('rating-updating');
+    
+    // Atualiza o texto da avaliação
+    const ratingText = container.querySelector('.rating-text');
+    if (ratingText) {
+        if (ratingCount > 0) {
+            // Formata a média para 1 casa decimal e adiciona formatação de número
+            const formattedAvg = parseFloat(avgRating).toFixed(1).replace('.', ',');
+            ratingText.innerHTML = `
+                <span class="average-rating">${formattedAvg}</span>
+                <small class="text-muted ms-1">
+                    (${formatNumber(ratingCount)} avaliação${ratingCount !== 1 ? 'es' : ''})
+                </small>
+            `;
+            
+            // Adiciona tooltip com detalhes se disponível
+            ratingText.setAttribute('data-bs-toggle', 'tooltip');
+            ratingText.setAttribute('title', `Média: ${formattedAvg} de 5 estrelas`);
+            
+            // Inicializa o tooltip do Bootstrap
+            const tooltip = new bootstrap.Tooltip(ratingText);
+            
+            // Remove o tooltip ao clicar fora
+            document.addEventListener('click', function hideTooltip(e) {
+                if (!ratingText.contains(e.target)) {
+                    tooltip.hide();
+                    document.removeEventListener('click', hideTooltip);
+                }
+            });
+        } else {
+            ratingText.textContent = 'Seja o primeiro a avaliar';
+            ratingText.removeAttribute('data-bs-toggle');
+            ratingText.removeAttribute('title');
+        }
+        console.log(`Texto de avaliação atualizado para: ${ratingText.textContent}`);
+    } else {
+        console.error('Elemento de texto de avaliação não encontrado');
+    }
+    
+    // Atualiza as estrelas com base na avaliação do usuário
+    const stars = container.querySelectorAll('.bi-star, .bi-star-fill');
+    console.log(`Encontradas ${stars.length} estrelas para atualização`);
+    
+    // Adiciona um pequeno atraso para a animação
+    setTimeout(() => {
+        stars.forEach((star, index) => {
+            const starRating = parseInt(star.getAttribute('data-rating'));
+            const shouldBeFilled = userRating && starRating <= userRating;
+            
+            console.log(`Atualizando estrela ${index + 1} (rating=${starRating}): preenchida=${shouldBeFilled}`);
+            
+            // Adiciona classe de transição
+            star.style.transition = 'transform 0.2s ease-in-out, color 0.2s ease-in-out';
+            
+            if (shouldBeFilled) {
+                star.classList.remove('bi-star');
+                star.classList.add('bi-star-fill', 'text-warning');
+                // Efeito de pulo suave
+                star.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    star.style.transform = 'scale(1)';
+                }, 200);
+            } else {
+                star.classList.remove('bi-star-fill', 'text-warning');
+                star.classList.add('bi-star');
+                star.style.transform = '';
+            }
+        });
+        
+        // Atualiza a avaliação atual no container
+        container.setAttribute('data-current-rating', userRating || '0');
+        
+        // Remove a classe de atualização após a animação
+        setTimeout(() => {
+            container.classList.remove('rating-updating');
+        }, 300);
+        
+        console.log(`UI atualizada para o post ${postId} com sucesso`);
+    }, 100);
+}
+
+// Função para carregar as avaliações de um post
+function loadRatings(postId, retryCount = 0) {
+    console.log(`Carregando avaliações para o post ${postId}...`);
+    
+    const container = document.querySelector(`.star-rating[data-post-id="${postId}"]`);
+    if (!container) {
+        console.error(`Container não encontrado para o post ${postId}`);
+        return;
+    }
+    
+    // Mostra indicador de carregamento
+    container.classList.add('rating-loading');
+    
+    // Armazena o texto original para restaurar em caso de erro
+    const ratingText = container.querySelector('.rating-text');
+    const originalText = ratingText ? ratingText.textContent : '';
+    
+    // Atualiza o texto para mostrar carregamento
+    if (ratingText) {
+        ratingText.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Carregando...';
+    }
+    
+    // Tenta carregar as avaliações
+    fetch(`/post/${postId}/ratings/`)
+        .then(async response => {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error || `Erro HTTP: ${response.status}`;
+                throw new Error(errorMessage);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`Dados recebidos para o post ${postId}:`, data);
+            
+            if (data.success) {
+                // Atualiza a interface do usuário com as avaliações
+                updateRatingUI(postId, data.avg_rating, data.rating_count, data.user_rating);
+                
+                // Atualiza a avaliação atual no container
+                container.setAttribute('data-current-rating', data.user_rating || '0');
+                console.log(`Avaliação atual do usuário para o post ${postId}: ${data.user_rating || 'Nenhuma'}`);
+                
+                // Adiciona classe de atualização para feedback visual
+                container.classList.add('rating-updated');
+                setTimeout(() => {
+                    container.classList.remove('rating-updated');
+                }, 1000);
+            } else {
+                const errorMsg = data.error || 'Erro desconhecido ao carregar avaliações';
+                console.error('Erro ao carregar avaliações:', errorMsg);
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            console.error(`Erro ao carregar avaliações para o post ${postId}:`, error);
+            
+            // Tenta novamente se for um erro de rede e não temos muitas tentativas
+            if (error.name === 'TypeError' && retryCount < 3) {
+                console.log(`Tentativa ${retryCount + 1} de 3 para carregar avaliações...`);
+                setTimeout(() => loadRatings(postId, retryCount + 1), 1000 * (retryCount + 1));
+                return;
+            }
+            
+            // Mostra mensagem de erro para o usuário
+            if (ratingText) {
+                ratingText.textContent = 'Erro ao carregar avaliações';
+                ratingText.classList.add('text-danger');
+                
+                // Restaura o texto original após alguns segundos
+                setTimeout(() => {
+                    if (ratingText) {
+                        ratingText.textContent = originalText;
+                        ratingText.classList.remove('text-danger');
+                    }
+                }, 3000);
+            }
+        })
+        .finally(() => {
+            // Remove o indicador de carregamento
+            container.classList.remove('rating-loading');
+        });
+}
+
+// Função para carregar as avaliações de um post
+function loadRatings(postId, retryCount = 0) {
+    console.log(`Carregando avaliações para o post ${postId}...`);
+    
+    const container = document.querySelector(`.star-rating[data-post-id="${postId}"]`);
+    if (!container) {
+        console.error(`Container não encontrado para o post ${postId}`);
+        return;
+    }
+    
+    // Mostra indicador de carregamento
+    container.classList.add('rating-loading');
+    
+    // Armazena o texto original para restaurar em caso de erro
+    const ratingText = container.querySelector('.rating-text');
+    const originalText = ratingText ? ratingText.textContent : '';
+    
+    // Atualiza o texto para mostrar carregamento
+    if (ratingText) {
+        ratingText.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Carregando...';
+    }
+    
+    // Tenta carregar as avaliações
+    fetch(`/post/${postId}/ratings/`)
+        .then(async response => {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.error || `Erro HTTP: ${response.status}`;
+                throw new Error(errorMessage);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`Dados recebidos para o post ${postId}:`, data);
+            
+            if (data.success) {
+                // Atualiza a interface do usuário com as avaliações
+                updateRatingUI(postId, data.avg_rating, data.rating_count, data.user_rating);
+                
+                // Atualiza a avaliação atual no container
+                container.setAttribute('data-current-rating', data.user_rating || '0');
+                console.log(`Avaliação atual do usuário para o post ${postId}: ${data.user_rating || 'Nenhuma'}`);
+                
+                // Adiciona classe de atualização para feedback visual
+                container.classList.add('rating-updated');
+                setTimeout(() => {
+                    container.classList.remove('rating-updated');
+                }, 1000);
+            } else {
+                const errorMsg = data.error || 'Erro desconhecido ao carregar avaliações';
+                console.error('Erro ao carregar avaliações:', errorMsg);
+                throw new Error(errorMsg);
+            }
+        })
+        .catch(error => {
+            console.error(`Erro ao carregar avaliações para o post ${postId}:`, error);
+            
+            // Tenta novamente se for um erro de rede e não temos muitas tentativas
+            if (error.name === 'TypeError' && retryCount < 3) {
+                console.log(`Tentativa ${retryCount + 1} de 3 para carregar avaliações...`);
+                setTimeout(() => loadRatings(postId, retryCount + 1), 1000 * (retryCount + 1));
+                return;
+            }
+            
+            // Mostra mensagem de erro para o usuário
+            if (ratingText) {
+                ratingText.textContent = 'Erro ao carregar avaliações';
+                ratingText.classList.add('text-danger');
+                
+                // Restaura o texto original após alguns segundos
+                setTimeout(() => {
+                    if (ratingText) {
+                        ratingText.textContent = originalText;
+                        ratingText.classList.remove('text-danger');
+                    }
+                }, 3000);
+            }
+        })
+        .finally(() => {
+            // Remove o indicador de carregamento
+            container.classList.remove('rating-loading');
+        });
+}
+
+// Função para carregar as avaliações dos posts de forma otimizada
+function initializeRatings() {
+    console.log('Inicializando avaliações...');
+    
+    // Encontra todos os containers de avaliação visíveis na viewport
+    const ratingContainers = Array.from(document.querySelectorAll('.star-rating'));
+    console.log(`Encontrados ${ratingContainers.length} containers de avaliação`);
+    
+    if (ratingContainers.length === 0) {
+        console.log('Nenhum container de avaliação encontrado na página');
+        return;
+    }
+    
+    // Função para verificar se um elemento está visível na viewport
+    const isInViewport = (element) => {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 100 &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    };
+    
+    // Carrega apenas os ratings visíveis inicialmente
+    const loadVisibleRatings = () => {
+        ratingContainers.forEach(container => {
+            const postId = container.getAttribute('data-post-id');
+            const isLoaded = container.hasAttribute('data-ratings-loaded');
+            
+            if (postId && !isLoaded && isInViewport(container)) {
+                console.log(`Carregando avaliações para o post visível: ${postId}`);
+                container.setAttribute('data-ratings-loading', 'true');
+                loadRatings(postId);
+                
+                // Marca como carregado para não carregar novamente
+                container.setAttribute('data-ratings-loaded', 'true');
+                container.removeAttribute('data-ratings-loading');
+            }
+        });
+    };
+    
+    // Carrega os ratings visíveis inicialmente
+    loadVisibleRatings();
+    
+    // Configura o IntersectionObserver para carregar ratings conforme o usuário rola a página
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const container = entry.target;
+                    const postId = container.getAttribute('data-post-id');
+                    const isLoaded = container.hasAttribute('data-ratings-loaded');
+                    
+                    if (postId && !isLoaded) {
+                        console.log(`Carregando avaliações para o post ao rolar: ${postId}`);
+                        container.setAttribute('data-ratings-loading', 'true');
+                        loadRatings(postId);
+                        
+                        // Marca como carregado para não carregar novamente
+                        container.setAttribute('data-ratings-loaded', 'true');
+                        container.removeAttribute('data-ratings-loading');
+                    }
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '100px',
+            threshold: 0.1
+        });
+        
+        // Observa todos os containers de rating
+        ratingContainers.forEach(container => {
+            observer.observe(container);
+        });
+    } else {
+        // Fallback para navegadores antigos: carrega todos os ratings de uma vez
+        console.log('IntersectionObserver não suportado, carregando todas as avaliações...');
+        ratingContainers.forEach(container => {
+            const postId = container.getAttribute('data-post-id');
+            if (postId) {
+                console.log(`Carregando avaliações para o post (fallback): ${postId}`);
+                loadRatings(postId);
+            }
+        });
+    }
+}
+
+// Função para inicializar os ouvintes de eventos das estrelas
+function initializeStarEventListeners() {
+    console.log('Inicializando ouvintes de eventos das estrelas...');
+    
+    // Usa um seletor mais específico para evitar capturar estrelas de outros componentes
+    const stars = document.querySelectorAll('.star-rating .bi[data-rating]');
+    console.log(`Encontradas ${stars.length} estrelas para inicializar`);
+    
+    // Remove todos os ouvintes antigos primeiro para evitar duplicação
+    stars.forEach(star => {
+        // Clona o elemento para remover todos os ouvintes de evento
+        const newStar = star.cloneNode(true);
+        star.parentNode.replaceChild(newStar, star);
+        
+        // Obtém os dados necessários
+        const container = newStar.closest('.star-rating');
+        if (!container) return;
+        
+        const postId = container.getAttribute('data-post-id');
+        const rating = parseInt(newStar.getAttribute('data-rating'));
+        
+        if (!postId || isNaN(rating)) {
+            console.warn('Estrela sem postId ou rating inválido:', { postId, rating });
+            return;
+        }
+        
+        // Adiciona os ouvintes de eventos
+        newStar.addEventListener('mouseover', () => highlightStars(newStar, rating));
+        newStar.addEventListener('mouseout', () => {
+            const currentRating = container.getAttribute('data-current-rating') || '0';
+            resetStars(newStar, parseInt(currentRating));
+        });
+        
+        // Usa uma função nomeada para permitir a remoção posterior se necessário
+        const clickHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(`Clique na estrela ${rating} do post ${postId}`);
+            ratePost(postId, rating);
+        };
+        
+        newStar.addEventListener('click', clickHandler);
+        
+        // Armazena a referência do manipulador para possível remoção
+        newStar._clickHandler = clickHandler;
+        
+        console.log(`Ouvintes adicionados para estrela ${rating} do post ${postId}`);
+    });
+}
+
+// Inicializa as avaliações quando o DOM estiver pronto
+function initializeAll() {
+    console.log('Inicializando todas as funções...');
+    
+    try {
+        // Inicializa os ouvintes de eventos das estrelas primeiro
+        // Isso garante que os eventos estejam configurados quando as avaliações forem carregadas
+        console.log('Inicializando ouvintes de eventos das estrelas...');
+        initializeStarEventListeners();
+        
+        // Inicializa o carregamento das avaliações
+        console.log('Inicializando carregamento de avaliações...');
+        initializeRatings();
+        
+        // Adiciona um ouvinte para rolagem para carregar avaliações de forma preguiçosa
+        console.log('Configurando rolagem para carregamento preguiçoso...');
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                // Recarrega as avaliações visíveis após a rolagem parar
+                const visibleContainers = Array.from(document.querySelectorAll('.star-rating')).filter(container => {
+                    const rect = container.getBoundingClientRect();
+                    return (
+                        rect.top >= 0 &&
+                        rect.left >= 0 &&
+                        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 100 &&
+                        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+                    );
+                });
+                
+                visibleContainers.forEach(container => {
+                    const postId = container.getAttribute('data-post-id');
+                    if (postId && !container.hasAttribute('data-ratings-loaded')) {
+                        loadRatings(postId);
+                    }
+                });
+            }, 200); // Aguarda 200ms após a rolagem parar
+        }, { passive: true });
+        
+        console.log('Todas as funções foram inicializadas com sucesso');
+    } catch (error) {
+        console.error('Erro durante a inicialização:', error);
+        showAlert('Ocorreu um erro ao inicializar as funcionalidades da página. Por favor, recarregue a página.', 'danger');
+    }
+}
+
+// Função para exibir mensagens de alerta
+function showAlert(message, type = 'info') {
+    // Cria o elemento de alerta
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+    alertDiv.style.zIndex = '1060'; // Garante que fique acima do modal do Bootstrap
+    alertDiv.role = 'alert';
+    
+    // Adiciona o conteúdo do alerta
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    `;
+    
+    // Adiciona o alerta ao corpo do documento
+    document.body.appendChild(alertDiv);
+    
+    // Remove o alerta após 5 segundos
+    setTimeout(() => {
+        const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+        if (alert) alert.close();
+    }, 5000);
+    
+    // Remove o elemento do DOM após a animação de fechamento
+    alertDiv.addEventListener('closed.bs.alert', () => {
+        alertDiv.remove();
+    });
+}
+
+// Adiciona estilos CSS para melhorar a aparência das avaliações
+const style = document.createElement('style');
+style.textContent = `
+    /* Estilos para o container de avaliação */
+    .star-rating {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        padding: 0.5rem 0;
+        position: relative;
+    }
+    
+    /* Estilo para as estrelas */
+    .stars-container {
+        display: flex;
+        gap: 0.1rem;
+    }
+    
+    .star {
+        font-size: 1.25rem;
+        color: #dee2e6;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+    }
+    
+    .star:hover {
+        transform: scale(1.2);
+    }
+    
+    .star.bi-star-fill {
+        color: #ffc107;
+    }
+    
+    /* Feedback visual ao passar o mouse */
+    .star.highlighted {
+        transform: scale(1.3);
+    }
+    
+    /* Texto de avaliação */
+    .rating-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .average-rating {
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    /* Feedback de carregamento */
+    .rating-loading {
+        position: relative;
+        opacity: 0.7;
+    }
+    
+    .rating-loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 0.25rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    /* Efeito de pulso para feedback visual */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .rating-updated {
+        animation: pulse 0.5s ease-in-out;
+    }
+`;
+document.head.appendChild(style);
+
+// Adiciona um manipulador de erros global
+window.addEventListener('error', function(event) {
+    console.error('Erro não tratado:', event.error || event.message, event);
+    showAlert('Ocorreu um erro inesperado. Por favor, recarregue a página.', 'danger');
+    // Retorna true para evitar que o erro seja registrado novamente no console
+    return true;
+});
+
+// Adiciona um manipulador para promessas não tratadas
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('Promessa não tratada:', event.reason);
+    showAlert('Ocorreu um erro ao processar uma operação. Por favor, tente novamente.', 'warning');
+    // Impede o aviso padrão do navegador
+    event.preventDefault();
+});
+
+// Verifica se o DOM já foi carregado
+if (document.readyState === 'loading') {
+    // Se o DOM ainda não foi carregado, adiciona um ouvinte de evento
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            initializeAll();
+        } catch (error) {
+            console.error('Erro na inicialização:', error);
+            showAlert('Erro ao inicializar a página. Por favor, recarregue.', 'danger');
+        }
+    });
+} else {
+    // Se o DOM já foi carregado, inicializa imediatamente
+    setTimeout(function() {
+        try {
+            initializeAll();
+        } catch (error) {
+            console.error('Erro na inicialização:', error);
+            showAlert('Erro ao inicializar a página. Por favor, recarregue.', 'danger');
+        }
+    }, 300); // Pequeno atraso para garantir que tudo esteja pronto
+}
 </script>
 {% endblock extra_js %}

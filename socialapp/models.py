@@ -8,10 +8,18 @@ from django.utils import timezone
 # Create your models here.
 class Avalia(models.Model):
     id_avalia = models.AutoField(primary_key=True)
-    valor_avalia = models.CharField(max_length=255)
+    valor_avalia = models.IntegerField(choices=[(1, '1 Estrela'), (2, '2 Estrelas'), (3, '3 Estrelas'), (4, '4 Estrelas'), (5, '5 Estrelas')])
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    postagem = models.ForeignKey('Postagem', on_delete=models.CASCADE, related_name='avaliacoes')
+    data_avaliacao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'postagem')
+        verbose_name = 'Avaliação'
+        verbose_name_plural = 'Avaliações'
 
     def __str__(self):
-        return self.valor_avalia
+        return f"{self.user.username} - {self.get_valor_avalia_display()}"
 
 def post_image_path(instance, filename):
     # Upload para: posts/ano/mes/nome_do_arquivo
@@ -33,7 +41,6 @@ class Postagem(models.Model):
     titulo_postagem = models.CharField(max_length=200)
     conteudo_postagem = models.TextField()
     imagem_postagem = models.ImageField(upload_to=post_image_path, blank=True, null=True, verbose_name='Imagem da Postagem')
-    id_avalia = models.ForeignKey(Avalia, models.DO_NOTHING, null=True, blank=True, db_column='id_avalia')
 
     def __str__(self):
         return self.titulo_postagem

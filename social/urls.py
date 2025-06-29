@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
 from socialapp.views import index, sobre, home, contato 
-from socialapp.views import new_avalia, editar_avalia, deleta_avalia
+from socialapp.views import new_avalia, editar_avalia, deleta_avalia, rate_post, get_post_ratings
 from socialapp.views import new_post, deleta_post, editar_post, like_post, add_comment, delete_comment, load_more_comments, my_posts, perfil_usuario
 from django.conf import settings
 from django.conf.urls.static import static
@@ -41,6 +41,8 @@ urlpatterns = [
     path('post/<int:post_id>/comment/', add_comment, name='add_comment'),
     path('comment/<int:comment_id>/delete/', delete_comment, name='delete_comment'),
     path('post/<int:post_id>/load-more-comments/', load_more_comments, name='load_more_comments'),
+    path('post/<int:post_id>/rate/', rate_post, name='rate_post'),
+    path('post/<int:post_id>/ratings/', get_post_ratings, name='get_post_ratings'),
     path('minhas-postagens/', my_posts, name='my_posts'),
     path('perfil/', perfil_usuario, name='perfil_usuario'),
     path('perfil/<str:username>/', perfil_usuario, name='view_profile'),
@@ -52,3 +54,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

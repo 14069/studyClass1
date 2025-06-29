@@ -2,10 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from socialapp.forms import AvaliaForms, PostagemForms, PerfilForms, TelefoneForms, PerfilPostForms, CommentForm
 from socialapp.models import Avalia, Postagem, Perfil, Telefone, Perfil_post, Like, Comment
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.db.models import Avg, Count
+import json
 
 # Create your views here.
 @login_required
@@ -19,14 +22,28 @@ def index(request):
     
     # Obtém todos os perfis para exibir as fotos de perfil
     perfis = Perfil.objects.select_related('user').all()
+    
+    # Obtém as avaliações do usuário para os posts
+    user_ratings = {}
+    if request.user.is_authenticated:
+        ratings = Avalia.objects.filter(user=request.user, postagem__in=posts)
+        user_ratings = {rating.postagem_id: rating.valor_avalia for rating in ratings}
+    
+    # Calcula a média de avaliações para cada post
+    from django.db.models import Avg, Count
+    posts_with_ratings = posts.annotate(
+        avg_rating=Avg('avaliacoes__valor_avalia'),
+        rating_count=Count('avaliacoes')
+    )
 
     return render(request, 'social/index.html', {
-        'posts': posts,
+        'posts': posts_with_ratings,
         'liked_post_ids': list(liked_post_ids),
         'comment_form': comment_form,
         'is_superuser': request.user.is_superuser,
         'current_user': request.user.username,
-        'perfis': perfis
+        'perfis': perfis,
+        'user_ratings': user_ratings
     })
 
 @login_required
@@ -40,14 +57,28 @@ def my_posts(request):
     
     # Obtém todos os perfis para exibir as fotos de perfil
     perfis = Perfil.objects.select_related('user').all()
+    
+    # Obtém as avaliações do usuário para os posts
+    user_ratings = {}
+    if request.user.is_authenticated:
+        ratings = Avalia.objects.filter(user=request.user, postagem__in=posts)
+        user_ratings = {rating.postagem_id: rating.valor_avalia for rating in ratings}
+    
+    # Calcula a média de avaliações para cada post
+    from django.db.models import Avg
+    posts_with_ratings = posts.annotate(
+        avg_rating=Avg('avaliacoes__valor_avalia'),
+        rating_count=Count('avaliacoes')
+    )
 
     return render(request, 'social/my_posts.html', {
-        'posts': posts,
+        'posts': posts_with_ratings,
         'liked_post_ids': list(liked_post_ids),
         'comment_form': comment_form,
         'is_superuser': request.user.is_superuser,
         'current_user': request.user.username,
-        'perfis': perfis
+        'perfis': perfis,
+        'user_ratings': user_ratings
     })
 
 @login_required
@@ -288,22 +319,42 @@ def deleta_post(request, id):
 
 @login_required
 def like_post(request, post_id):
-    post = get_object_or_404(Postagem, id_postagem=post_id)
-    like, created = Like.objects.get_or_create(user=request.user, postagem=post)
+    print(f"[DEBUG] like_post chamado para post_id: {post_id}")
+    try:
+        post = get_object_or_404(Postagem, id_postagem=post_id)
+        print(f"[DEBUG] Post encontrado: {post.titulo_postagem}")
+        
+        like, created = Like.objects.get_or_create(user=request.user, postagem=post)
+        print(f"[DEBUG] Like criado: {created}")
 
-    if not created:
-        # Se o like já existia, o usuário está descurtindo.
-        like.delete()
-        liked = False
-    else:
-        # Se o like foi criado agora, o usuário está curtindo.
-        liked = True
+        if not created:
+            # Se o like já existia, o usuário está descurtindo.
+            like.delete()
+            liked = False
+            print("[DEBUG] Like removido")
+        else:
+            # Se o like foi criado agora, o usuário está curtindo.
+            liked = True
+            print("[DEBUG] Like adicionado")
 
-    # Retorna a nova contagem de likes e o status atual do like do usuário
-    return JsonResponse({
-        'likes_count': post.likes.count(),
-        'liked': liked
-    })
+        likes_count = post.likes.count()
+        print(f"[DEBUG] Total de likes: {likes_count}")
+
+        # Retorna a nova contagem de likes e o status atual do like do usuário
+        response_data = {
+            'success': True,
+            'likes_count': likes_count,
+            'liked': liked
+        }
+        print(f"[DEBUG] Retornando resposta: {response_data}")
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"[ERROR] Erro em like_post: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 @login_required
@@ -375,19 +426,96 @@ def delete_comment(request, comment_id):
     Permite que o autor do comentário ou um superusuário o exclua.
     """
     comment = get_object_or_404(Comment, id=comment_id)
-    post_id = comment.postagem.id_postagem
+    post_id = comment.postagem.id
     
-    # Verifica se o usuário é o autor do comentário ou um superusuário
-    if comment.user != request.user and not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Permissão negada'}, status=403)
+    # Verifica se o usuário tem permissão para excluir o comentário
+    if request.user != comment.user and not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'Você não tem permissão para excluir este comentário.'}, status=403)
     
-    # Exclui o comentário
     comment.delete()
     
     # Atualiza a contagem de comentários
-    post = get_object_or_404(Postagem, id_postagem=post_id)
+    comment_count = Comment.objects.filter(postagem_id=post_id).count()
     
     return JsonResponse({
         'success': True,
-        'comments_count': post.comments.count()
+        'comment_count': comment_count
     })
+
+
+@require_POST
+@login_required
+def rate_post(request, post_id):
+    """
+    View para avaliar um post com estrelas.
+    """
+    try:
+        data = json.loads(request.body)
+        rating = int(data.get('rating'))
+        
+        # Valida a avaliação (deve estar entre 1 e 5)
+        if rating not in [1, 2, 3, 4, 5]:
+            return JsonResponse({'success': False, 'error': 'Avaliação inválida'}, status=400)
+        
+        # Obtém o post
+        post = get_object_or_404(Postagem, id_postagem=post_id)
+        
+        # Verifica se o usuário já avaliou este post
+        rating_obj, created = Avalia.objects.get_or_create(
+            user=request.user,
+            postagem=post,
+            defaults={'valor_avalia': rating}
+        )
+        
+        # Se não for uma nova avaliação, atualiza a existente
+        if not created:
+            rating_obj.valor_avalia = rating
+            rating_obj.save()
+        
+        # Recalcula a média de avaliações
+        ratings = Avalia.objects.filter(postagem=post)
+        avg_rating = ratings.aggregate(Avg('valor_avalia'))['valor_avalia__avg']
+        rating_count = ratings.count()
+        
+        return JsonResponse({
+            'success': True,
+            'avg_rating': round(avg_rating, 1) if avg_rating else 0,
+            'rating_count': rating_count,
+            'user_rating': rating
+        })
+        
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({'success': False, 'error': 'Dados inválidos'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def get_post_ratings(request, post_id):
+    """
+    Retorna as estatísticas de avaliação de um post.
+    """
+    try:
+        post = get_object_or_404(Postagem, id_postagem=post_id)
+        
+        # Calcula a média e contagem de avaliações
+        ratings = Avalia.objects.filter(postagem=post)
+        avg_rating = ratings.aggregate(Avg('valor_avalia'))['valor_avalia__avg']
+        rating_count = ratings.count()
+        
+        # Verifica se o usuário atual já avaliou o post
+        user_rating = None
+        if request.user.is_authenticated:
+            try:
+                user_rating = Avalia.objects.get(user=request.user, postagem=post).valor_avalia
+            except Avalia.DoesNotExist:
+                pass
+        
+        return JsonResponse({
+            'success': True,
+            'avg_rating': round(avg_rating, 1) if avg_rating else 0,
+            'rating_count': rating_count,
+            'user_rating': user_rating
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

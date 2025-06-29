@@ -1,0 +1,421 @@
+/* ============================================================
+   RESET BÁSICO E GERAL
+============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #fff;
+    color: #333;
+}
+
+a, button, .nav-link {
+    transition: all 0.3s ease;
+}
+
+/* ============================================================
+   NAVBAR COM ANIMAÇÃO SCROLL
+============================================================ */
+.navbar {
+    background-color: transparent;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+.navbar.scrolled {
+    background-color: rgb(0, 128, 163) !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+    position: fixed;
+}
+
+/* Navbar Hover Effect */
+.navbar .nav-link::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 2px;
+    background: white;
+    transition: width 0.3s;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+.navbar .nav-link:hover::after {
+    width: 100%;
+}
+
+/* ============================================================
+   MASTHEAD COM FADE-IN AO CARREGAR
+============================================================ */
+.masthead {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 8rem 0;
+    color: white;
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+}
+
+.masthead::before {
+    content: "";
+    background-color: rgba(0, 0, 0, 0.6);
+    position: absolute;
+    inset: 0;
+}
+
+.masthead .site-heading {
+    position: relative;
+    z-index: 1;
+    animation: fadeInDown 1s ease-out forwards;
+}
+
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================
+   BOTÕES COM ZOOM NA INTERAÇÃO
+============================================================ */
+.btn, button {
+    cursor: pointer;
+    border: none;
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.btn:hover, button:hover {
+    transform: scale(1.05);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-outline-primary {
+    background-color: transparent;
+    color: #007bff;
+    border: 2px solid #007bff;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* ============================================================
+   INPUTS COM SLIDE-IN E FOCUS ANIMATION
+============================================================ */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 50px;
+    outline: none;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    transform: translateX(-20px);
+    opacity: 0;
+    animation: slideIn 1s ease forwards;
+    animation-delay: 0.5s;
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+input:focus,
+textarea:focus {
+    border-color: #007bff;
+}
+
+/* ============================================================
+   ELEMENTOS COM ANIMAÇÕES DE SCROLL USANDO AOS
+============================================================ */
+/* Exemplo de uso no HTML:
+<div data-aos="fade-up"></div>
+<div data-aos="zoom-in"></div>
+*/
+
+[data-aos] {
+    opacity: 0;
+    transition-property: opacity, transform;
+}
+
+[data-aos].aos-animate {
+    opacity: 1;
+}
+
+/* ============================================================
+   FOOTER COM FADE-IN
+============================================================ */
+footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 2rem 0;
+    text-align: center;
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 1s;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+footer a:hover {
+    color: #007bff;
+}
+
+footer .bi:hover {
+    transform: scale(1.2);
+    color: #007bff;
+}
+
+/* ============================================================
+   DARK MODE COM ANIMAÇÕES
+============================================================ */
+/* 🌙 Dark Mode */
+/* ============================================================
+   DARK MODE
+============================================================ */
+.dark-mode {
+    background-color: #121212 !important;
+    color: #f5f5f5 !important;
+}
+
+.dark-mode body {
+    background-color: #121212 !important;
+    color: #f5f5f5 !important;
+}
+
+.dark-mode .navbar {
+    background-color: rgba(18, 18, 18, 0.95) !important;
+}
+
+.dark-mode .navbar .nav-link,
+.dark-mode .navbar .navbar-brand {
+    color: #f5f5f5 !important;
+}
+
+.dark-mode .navbar .nav-link:hover {
+    color: #00adb5 !important;
+}
+
+.dark-mode .dropdown-menu {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+}
+
+.dark-mode .dropdown-item {
+    color: #f5f5f5 !important;
+}
+
+.dark-mode .dropdown-item:hover {
+    background-color: #333 !important;
+}
+
+.dark-mode .masthead {
+    background-color: #1a1a1a !important;
+    background-blend-mode: multiply !important;
+}
+
+.dark-mode footer {
+    background-color: #1a1a1a !important;
+}
+
+.dark-mode footer h5,
+.dark-mode footer a,
+.dark-mode footer p,
+.dark-mode footer .text-muted {
+    color: #f5f5f5 !important;
+}
+
+.dark-mode .btn-outline-secondary {
+    border-color: #f5f5f5 !important;
+    color: #f5f5f5 !important;
+}
+
+.dark-mode .btn-outline-secondary:hover {
+    background-color: #f5f5f5 !important;
+    color: #121212 !important;
+}
+
+/* Cards e elementos de conteúdo */
+.dark-mode .card {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #f8f9fa !important;
+}
+
+.dark-mode .card-header,
+.dark-mode .card-footer {
+    background-color: #2d2d2d !important;
+    border-color: #333 !important;
+}
+
+/* Textos em cards e postagens */
+.dark-mode .card-body,
+.dark-mode .post-text,
+.dark-mode .post-content,
+.dark-mode .post-title,
+.dark-mode .post-meta,
+.dark-mode .post-body {
+    color: #f8f9fa !important;
+}
+
+/* Links em cards e postagens */
+.dark-mode .card a:not(.btn),
+.dark-mode .post-text a,
+.dark-mode .post-content a {
+    color: #4dabf7 !important;
+}
+
+.dark-mode .card a:not(.btn):hover,
+.dark-mode .post-text a:hover,
+.dark-mode .post-content a:hover {
+    color: #74c0fc !important;
+    text-decoration: none;
+}
+
+/* Tabelas */
+.dark-mode .table {
+    color: #f8f9fa !important;
+    border-color: #444 !important;
+}
+
+.dark-mode .table td,
+.dark-mode .table th {
+    border-color: #444 !important;
+}
+
+.dark-mode .table-hover tbody tr:hover {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.075) !important;
+}
+
+/* Links */
+.dark-mode a {
+    color: #4dabf7 !important;
+}
+
+.dark-mode a:hover {
+    color: #74c0fc !important;
+}
+
+/* Textos e cabeçalhos */
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6 {
+    color: #f8f9fa !important;
+}
+
+/* Formulários */
+.dark-mode .form-control,
+.dark-mode .form-select {
+    background-color: #2d2d2d !important;
+    border-color: #444 !important;
+    color: #f8f9fa !important;
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+    background-color: #333 !important;
+    border-color: #4dabf7 !important;
+    box-shadow: 0 0 0 0.25rem rgba(77, 171, 247, 0.25) !important;
+}
+
+/* Botões */
+.dark-mode .btn-primary {
+    background-color: #1971c2 !important;
+    border-color: #1971c2 !important;
+}
+
+.dark-mode .btn-primary:hover {
+    background-color: #1864ab !important;
+    border-color: #1864ab !important;
+}
+
+/* ============================================================
+   RESPONSIVO
+============================================================ */
+@media (max-width: 992px) {
+    body {
+        margin: 0;
+        padding-top: 70px;
+    }
+
+    .masthead h1 {
+        font-size: 3rem;
+    }
+
+    .masthead .subheading {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .masthead {
+        padding: 5rem 0;
+    }
+
+    .masthead h1 {
+        font-size: 2.5rem;
+    }
+
+    .masthead .subheading {
+        font-size: 1rem;
+    }
+
+    footer {
+        padding: 1rem 0;
+    }
+}
