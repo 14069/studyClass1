@@ -16,13 +16,17 @@ def index(request):
     # Obtém os IDs dos posts curtidos pelo usuário
     liked_post_ids = Like.objects.filter(user=request.user).values_list('postagem_id', flat=True)
     comment_form = CommentForm()
+    
+    # Obtém todos os perfis para exibir as fotos de perfil
+    perfis = Perfil.objects.select_related('user').all()
 
     return render(request, 'social/index.html', {
         'posts': posts,
-        'liked_post_ids': list(liked_post_ids),  # Converte para lista para evitar múltiplas consultas no template
+        'liked_post_ids': list(liked_post_ids),
         'comment_form': comment_form,
         'is_superuser': request.user.is_superuser,
-        'current_user': request.user.username
+        'current_user': request.user.username,
+        'perfis': perfis
     })
 
 @login_required
@@ -33,13 +37,17 @@ def my_posts(request):
     # Obtém os IDs dos posts curtidos pelo usuário
     liked_post_ids = Like.objects.filter(user=request.user).values_list('postagem_id', flat=True)
     comment_form = CommentForm()
+    
+    # Obtém todos os perfis para exibir as fotos de perfil
+    perfis = Perfil.objects.select_related('user').all()
 
     return render(request, 'social/my_posts.html', {
         'posts': posts,
         'liked_post_ids': list(liked_post_ids),
         'comment_form': comment_form,
         'is_superuser': request.user.is_superuser,
-        'current_user': request.user.username
+        'current_user': request.user.username,
+        'perfis': perfis
     })
 
 @login_required
@@ -126,15 +134,31 @@ def new_post(request):
     if request.method == 'POST':
         form = PostagemForms(request.POST, request.FILES)
         if form.is_valid():
-            postagem = form.save(commit=False)
-            postagem.autor_postagem = request.user
-            postagem.save()
-            return redirect('my_posts')  # Redireciona para a lista de postagens do usuário
+            try:
+                # Cria a postagem sem salvar no banco ainda
+                postagem = form.save(commit=False)
+                # Define o autor como o nome de usuário
+                postagem.autor_postagem = request.user.username
+                # Define a data atual
+                postagem.data_postagem = timezone.now()
+                # Salva a postagem (isso também processa a imagem)
+                postagem.save()
+                
+                messages.success(request, 'Postagem criada com sucesso!')
+                return redirect('my_posts')
+            except Exception as e:
+                messages.error(request, f'Erro ao criar postagem: {str(e)}')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário.')
     else:
-        form = PostagemForms()
+        # Inicializa o formulário com valores padrão
+        form = PostagemForms(initial={
+            'autor_postagem': request.user.username,
+            'data_postagem': timezone.now()
+        })
     
     # Mostra apenas as postagens do usuário atual
-    posts = Postagem.objects.filter(autor_postagem=request.user).order_by('-data_postagem')
+    posts = Postagem.objects.filter(autor_postagem=request.user.username).order_by('-data_postagem')
     return render(request, 'social/new_post.html', {
         'form': form, 
         'posts': posts,
@@ -148,31 +172,48 @@ def editar_post(request, id):
     
     # Permite que o autor ou um superusuário edite a postagem
     if str(post.autor_postagem) != str(request.user.username) and not request.user.is_superuser:
+        messages.error(request, 'Você não tem permissão para editar esta postagem.')
         return redirect('index')
         
-    form = PostagemForms(instance=post)
-    
     # Mostra apenas as postagens do usuário atual
-    posts = Postagem.objects.filter(autor_postagem=request.user).order_by('-data_postagem')
+    posts = Postagem.objects.filter(autor_postagem=request.user.username).order_by('-data_postagem')
 
     if request.method == "POST":
         form = PostagemForms(request.POST, request.FILES, instance=post)
         if form.is_valid():
-            form.save()
-            return redirect('my_posts')  # Redireciona para a lista de postagens do usuário
-        return render(request, 'social/editar_post.html', {
-            'form': form, 
-            'posts': posts, 
-            'post': post,
-            'is_own_posts': True  # Indica que são as postagens do próprio usuário
-        })
+            try:
+                # Verifica se o usuário marcou para remover a imagem
+                if 'remove_imagem' in request.POST and request.POST['remove_imagem'] == 'on':
+                    # Remove o arquivo de imagem do sistema de arquivos
+                    if post.imagem_postagem:
+                        post.imagem_postagem.delete(save=False)
+                    # Remove a referência da imagem no banco de dados
+                    post.imagem_postagem = None
+                
+                # Verifica se foi enviada uma nova imagem
+                if 'imagem_postagem' in request.FILES:
+                    # Remove a imagem antiga se existir
+                    if post.imagem_postagem:
+                        post.imagem_postagem.delete(save=False)
+                
+                # Salva as alterações
+                post.save()
+                
+                messages.success(request, 'Postagem atualizada com sucesso!')
+                return redirect('my_posts')
+                
+            except Exception as e:
+                messages.error(request, f'Erro ao atualizar a postagem: {str(e)}')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário.')
     else:
-        return render(request, 'social/editar_post.html', {
-            'form': form, 
-            'posts': posts, 
-            'post': post,
-            'is_own_posts': True  # Indica que são as postagens do próprio usuário
-        })
+        form = PostagemForms(instance=post)
+    
+    return render(request, 'social/editar_post.html', {
+        'form': form, 
+        'post': post,
+        'posts': posts
+    })
 
 
 
@@ -218,12 +259,24 @@ def deleta_post(request, id):
                 # 3. Forçar a limpeza do cache de relacionamentos
                 post = Postagem.objects.get(pk=post_id)
                 
-                # 4. Excluir a postagem
+                # 4. Remover a imagem associada à postagem, se existir
+                if post.imagem_postagem:
+                    try:
+                        # Remove o arquivo de imagem do sistema de arquivos
+                        post.imagem_postagem.delete(save=False)
+                        logger.info(f"Imagem da postagem {post_id} removida com sucesso.")
+                    except Exception as e:
+                        logger.error(f"Erro ao remover a imagem da postagem {post_id}: {str(e)}", exc_info=True)
+                
+                # 5. Excluir a postagem
                 logger.info("Excluindo a postagem...")
                 post.delete()
                 
                 messages.success(request, "Postagem excluída com sucesso!")
-                return redirect('index')
+                
+                # Redireciona para a página correta com base no parâmetro 'next' ou para a página inicial
+                next_url = request.GET.get('next', 'index')
+                return redirect(next_url)
             
             return redirect('index')
             

@@ -14,14 +14,41 @@
                 <div class="card shadow-sm border-0 rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-person-circle text-primary" style="font-size: 2.5rem;"></i>
-                            <div class="ms-3">
-                                <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>
-                                    {{ postagem.data_postagem|date:"d/m/Y H:i" }}
-                                </small>
+                            <div class="d-flex align-items-center">
+                                <!-- Foto do autor -->
+                                {% with autor_encontrado=False %}
+                                    {% for perfil in perfis %}
+                                        {% if perfil.user and perfil.user.username == postagem.autor_postagem %}
+                                            {% if perfil.foto_perfil %}
+                                                <div class="position-relative me-2">
+                                                    <img src="{{ perfil.foto_perfil.url }}" 
+                                                        class="rounded-circle" 
+                                                        alt="{{ perfil.nome_perfil }}"
+                                                        style="width: 36px; height: 36px; object-fit: cover; border: 2px solid #4361ee;">
+                                                </div>
+                                            {% else %}
+                                                <div class="position-relative me-2">
+                                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
+                                                        style="width: 36px; height: 36px; background-color: #4361ee;">
+                                                        <i class="bi bi-person-fill text-white"></i>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            {% with autor_encontrado=True %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                                
+                                <!-- Nome do autor e data -->
+                                <div>
+                                    <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ postagem.data_postagem|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
                             </div>
+                            <!-- Botões de opções do post -->
                             {% if postagem.autor_postagem == request.user.username or request.user.is_superuser %}
                             <div class="ms-auto dropdown">
                                 <button class="btn btn-sm btn-light rounded-circle"
@@ -65,8 +92,17 @@
                             {{ postagem.titulo_postagem }}
                         </h4>
                         <p class="card-text">
-                            {{ postagem.conteudo_postagem|truncatewords:50 }}
+                            {{ postagem.conteudo_postagem|linebreaksbr }}
                         </p>
+                        <!-- Imagem do post -->
+                        {% if postagem.imagem_postagem %}
+                        <div class="post-image-container mb-3">
+                            <img src="{{ postagem.imagem_postagem.url }}" 
+                                 alt="Imagem da postagem" 
+                                 class="img-fluid rounded" 
+                                 style="max-height: 500px; width: 100%; object-fit: contain;">
+                        </div>
+                        {% endif %}
 
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-outline-primary btn-sm like-button" data-post-id="{{ postagem.id_postagem }}">
@@ -77,7 +113,8 @@
                                 <i class="bi bi-chat me-1"></i> Comentar
                             </button>
                         </div>
-                        <div class="mt-2">
+                        <!-- Contagem de curtidas e comentários -->
+                            <div class="mt-2">
                             <span class="fw-bold" id="like-count-{{ postagem.id_postagem }}">{{ postagem.likes.count }}</span>
                             <span class="text-muted">curtida{{ postagem.likes.count|pluralize:"s" }}</span>
                             <span class="mx-2">•</span>
@@ -125,8 +162,164 @@
 
 {% endblock content %}
 
+{% block extra_css %}
+<style>
+    /* Estilos para as imagens das postagens */
+    .post-image-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+    
+    .post-image-container img {
+        max-height: 500px;
+        width: auto;
+        max-width: 100%;
+        border-radius: 4px;
+        transition: transform 0.3s ease;
+    }
+    
+    .post-image-container img:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Estilos para os comentários */
+    .comment {
+        border-left: 3px solid #0d6efd;
+        padding-left: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .comment-form {
+        margin-top: 15px;
+    }
+    
+    .comment-actions {
+        font-size: 0.8rem;
+    }
+    
+    .comment-actions a {
+        text-decoration: none;
+        margin-right: 10px;
+    }
+    
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+    
+    .comment-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    
+    .comment-username {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+    
+    .comment-time {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    .comment-content {
+        margin-left: 42px;
+    }
+    
+    .load-more-comments {
+        font-size: 0.9rem;
+        color: #0d6efd;
+        cursor: pointer;
+    }
+    
+    .load-more-comments:hover {
+        text-decoration: underline;
+    }
+    
+    .comment-actions .dropdown-menu {
+        min-width: 100px;
+    }
+    
+    .comment-actions .dropdown-item {
+        padding: 0.25rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .comment-actions .dropdown-item i {
+        width: 18px;
+        text-align: center;
+        margin-right: 5px;
+    }
+    
+    /* Estilo para o modal de imagem */
+    .modal-image {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Ajustes para o tema escuro */
+    .dark-mode .post-image-container {
+        background-color: #2d2d2d;
+    }
+    
+    .dark-mode .post-image-container img {
+        filter: brightness(0.9);
+    }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
+// Adiciona funcionalidade para abrir a imagem em um modal ao clicar nela
+document.addEventListener('DOMContentLoaded', function() {
+    // Adiciona evento de clique nas imagens das postagens
+    document.querySelectorAll('.post-image-container img').forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+            const modal = `
+                <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content bg-transparent border-0">
+                            <div class="modal-header border-0">
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body text-center p-0">
+                                <img src="${this.src}" class="img-fluid" alt="Imagem ampliada">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove o modal existente, se houver
+            const existingModal = document.getElementById('imageModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Adiciona o novo modal ao body
+            document.body.insertAdjacentHTML('beforeend', modal);
+            
+            // Inicializa o modal
+            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+            imageModal.show();
+            
+            // Remove o modal do DOM quando fechado
+            document.getElementById('imageModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        });
+    });
+});
+
 // Variáveis globais
 let isLoadingComments = false;
 

@@ -13,22 +13,68 @@ class Avalia(models.Model):
     def __str__(self):
         return self.valor_avalia
 
+def post_image_path(instance, filename):
+    # Upload para: posts/ano/mes/nome_do_arquivo
+    import os
+    from django.utils.timezone import now
+    
+    # Obtém a data atual para organizar em pastas
+    date_path = now().strftime('posts/%Y/%m')
+    # Gera um nome único para o arquivo
+    filename_base, filename_ext = os.path.splitext(filename)
+    unique_filename = f"{filename_base}_{now().strftime('%Y%m%d%H%M%S')}{filename_ext}"
+    
+    return os.path.join(date_path, unique_filename)
+
 class Postagem(models.Model):
-    id_postagem = models.AutoField( primary_key= True)
-    autor_postagem= models.CharField(max_length=255)
-    data_postagem =models.DateTimeField()
+    id_postagem = models.AutoField(primary_key=True)
+    autor_postagem = models.CharField(max_length=255)
+    data_postagem = models.DateTimeField(auto_now_add=True)
     titulo_postagem = models.CharField(max_length=200)
-    conteudo_postagem = models.TextField()  
-    id_avalia = models.ForeignKey(Avalia, models.DO_NOTHING,null=True,blank=True, db_column='id_avalia')
+    conteudo_postagem = models.TextField()
+    imagem_postagem = models.ImageField(upload_to=post_image_path, blank=True, null=True, verbose_name='Imagem da Postagem')
+    id_avalia = models.ForeignKey(Avalia, models.DO_NOTHING, null=True, blank=True, db_column='id_avalia')
 
     def __str__(self):
         return self.titulo_postagem
+        
+    def save(self, *args, **kwargs):
+        # Primeiro, salva o modelo para obter o ID se for uma nova instância
+        super().save(*args, **kwargs)
+        
+        # Se houver uma imagem, redimensiona
+        if self.imagem_postagem:
+            try:
+                img = Image.open(self.imagem_postagem.path)
+                
+                # Define o tamanho máximo da imagem
+                max_size = (1200, 1200)
+                
+                # Redimensiona mantendo a proporção
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+                
+                # Se a imagem for muito grande, corta o excesso
+                if img.height > max_size[1] or img.width > max_size[0]:
+                    # Calcula o ponto de corte centralizado
+                    left = (img.width - max_size[0])/2 if img.width > max_size[0] else 0
+                    top = (img.height - max_size[1])/2 if img.height > max_size[1] else 0
+                    right = left + max_size[0] if left > 0 else img.width
+                    bottom = top + max_size[1] if top > 0 else img.height
+                    
+                    img = img.crop((left, top, right, bottom))
+                
+                # Salva a imagem otimizada
+                img.save(self.imagem_postagem.path, optimize=True, quality=85)
+            except Exception as e:
+                # Se ocorrer algum erro ao processar a imagem, apenas continue
+                print(f"Erro ao processar imagem: {e}")
 
 class Perfil(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil', null=True, blank=True)
     id_perfil = models.AutoField(primary_key=True)
     nome_perfil = models.CharField(max_length=255, default='Usuário')
     data_nascimento = models.DateField(null=True, blank=True, default=timezone.now)
-    matricula_perfil = models.CharField(max_length=255, unique=True)
+    matricula_perfil = models.CharField(max_length=255, unique=True, null=True, blank=True)
     numero_telefone = models.CharField('Telefone', max_length=20, blank=True, null=True)
     foto_perfil = models.ImageField(upload_to='perfis/', blank=True, null=True)
     data_criacao = models.DateTimeField(auto_now_add=True)

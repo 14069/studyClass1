@@ -130,47 +130,130 @@
 </style>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    // Inicialização de tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // Função para visualizar a imagem selecionada
+    function previewImage(input) {
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('image-preview');
+        const file = input.files[0];
+        
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.classList.remove('d-none');
+            }
+            
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '#';
+            previewContainer.classList.add('d-none');
+        }
+    }
+    
+    // Função para remover a imagem selecionada
+    function removeImage() {
+        const input = document.getElementById('imagem-postagem');
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('image-preview');
+        
+        input.value = '';
+        preview.src = '#';
+        previewContainer.classList.add('d-none');
+    }
+    
+    // Validação do formulário
+    document.getElementById('post-form').addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('imagem-postagem');
+        const file = fileInput.files[0];
+        
+        if (file) {
+            // Verifica o tamanho do arquivo (máximo 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB em bytes
+            if (file.size > maxSize) {
+                e.preventDefault();
+                alert('O arquivo é muito grande. O tamanho máximo permitido é 5MB.');
+                return false;
+            }
+            
+            // Verifica o tipo do arquivo
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                e.preventDefault();
+                alert('Formato de arquivo não suportado. Use apenas imagens JPG, JPEG ou PNG.');
+                return false;
+            }
+        }
+        
+        return true;
+    });
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4 py-lg-5">
     <div class="row justify-content-center">
         <div class="col-lg-10 col-xl-8">
             <div class="post-form-container" data-aos="fade-up">
                 <h2 class="text-center mb-4">Nova Postagem</h2>
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" id="post-form">
                     {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                {% render_field form.autor_postagem class="form-control" id="autor" placeholder="Autor" %}
-                                <label for="autor">Autor</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-floating mb-3">
-                                {% render_field form.data_postagem type="datetime-local" class="form-control" id="dia" %}
-                                <label for="dia">Data da Postagem</label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-floating mb-3">
-                                {% render_field form.titulo_postagem class="form-control" id="titulo" placeholder="Título" %}
-                                <label for="titulo">Título</label>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="form-floating mb-3">
-                                {% render_field form.conteudo_postagem class="form-control" id="conteudo" style="height: 150px;" placeholder="Conteúdo" %}
-                                <label for="conteudo">Conteúdo</label>
-                            </div>
+                    
+                    <!-- Campos ocultos para autor e data -->
+                    {{ form.autor_postagem.as_hidden }}
+                    {{ form.data_postagem.as_hidden }}
+                    
+                    <!-- Título da Postagem -->
+                    <div class="mb-3">
+                        {{ form.titulo_postagem.label_tag }}
+                        {{ form.titulo_postagem|add_class:"form-control" }}
+                        {% if form.titulo_postagem.help_text %}
+                            <small class="form-text text-muted">{{ form.titulo_postagem.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Conteúdo da Postagem -->
+                    <div class="mb-3">
+                        {{ form.conteudo_postagem.label_tag }}
+                        {{ form.conteudo_postagem|add_class:"form-control"|attr:"rows:5" }}
+                        {% if form.conteudo_postagem.help_text %}
+                            <small class="form-text text-muted">{{ form.conteudo_postagem.help_text }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Upload de Imagem -->
+                    <div class="mb-4">
+                        {{ form.imagem_postagem.label_tag }}
+                        {{ form.imagem_postagem|add_class:"form-control" }}
+                        {% if form.imagem_postagem.help_text %}
+                            <small class="form-text text-muted">{{ form.imagem_postagem.help_text }}</small>
+                        {% endif %}
+                        <div id="image-preview" class="mt-3 text-center d-none">
+                            <img id="preview" src="#" alt="Prévia da imagem" class="img-fluid rounded" style="max-height: 300px;">
+                            <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeImage()">
+                                <i class="bi bi-trash"></i> Remover imagem
+                            </button>
                         </div>
                     </div>
-                    <div class="post-actions">
-                        <button type="submit" class="btn btn-primary btn-submit">
-                            <i class="bi bi-save me-2"></i>Salvar Postagem
-                        </button>
-                        <a href="{% url 'index' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Voltar
+                    
+                    <!-- Botões de Ação -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'index' %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-x-circle me-1"></i> Cancelar
                         </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send-check me-1"></i> Publicar
+                        </button>
                     </div>
                 </form>
             </div>

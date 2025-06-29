@@ -26,13 +26,39 @@
                 <div class="card shadow-sm border-0 rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-person-circle text-primary" style="font-size: 2.5rem;"></i>
-                            <div class="ms-3">
-                                <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>
-                                    {{ postagem.data_postagem|date:"d/m/Y H:i" }}
-                                </small>
+                            <div class="d-flex align-items-center">
+                                <!-- Foto do autor -->
+                                {% with autor_encontrado=False %}
+                                    {% for perfil in perfis %}
+                                        {% if perfil.user and perfil.user.username == postagem.autor_postagem %}
+                                            {% if perfil.foto_perfil %}
+                                                <div class="position-relative me-2">
+                                                    <img src="{{ perfil.foto_perfil.url }}" 
+                                                        class="rounded-circle" 
+                                                        alt="{{ perfil.nome_perfil }}"
+                                                        style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #4361ee;">
+                                                </div>
+                                            {% else %}
+                                                <div class="position-relative me-2">
+                                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
+                                                        style="width: 40px; height: 40px; background-color: #4361ee;">
+                                                        <i class="bi bi-person-fill text-white"></i>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            {% with autor_encontrado=True %}{% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                                
+                                <!-- Nome do autor e data -->
+                                <div>
+                                    <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ postagem.data_postagem|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
                             </div>
                             <div class="ms-auto dropdown">
                                 <button class="btn btn-sm btn-light rounded-circle"
@@ -63,20 +89,21 @@
                             </div>
                         </div>
 
-                        <h4 class="card-title fw-bold text-primary">
+                        <h4 class="card-title fw-bold mb-3">
                             {{ postagem.titulo_postagem }}
                         </h4>
-                        <p class="card-text">
-                            {{ postagem.conteudo_postagem|linebreaksbr }}
-                        </p>
-
-                        {% if postagem.imagem_postagem %}
-                        <div class="mb-3">
-                            <img src="{{ postagem.imagem_postagem.url }}" 
-                                 alt="Imagem da postagem" 
-                                 class="img-fluid rounded-3">
+                        <div class="card-text">
+                            <p>{{ postagem.conteudo_postagem|linebreaksbr }}</p>
+                            
+                            {% if postagem.imagem_postagem %}
+                            <div class="post-image-container mb-3">
+                                <img src="{{ postagem.imagem_postagem.url }}" 
+                                     alt="Imagem da postagem" 
+                                     class="img-fluid rounded" 
+                                     style="max-height: 500px; width: 100%; object-fit: contain;">
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
 
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-outline-primary btn-sm like-button" data-post-id="{{ postagem.id_postagem }}">
