@@ -26,7 +26,7 @@ class UsuarioForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'last_name', 'first_name', 'data_nascimento', 'foto_perfil']
+        fields = ['username', 'email', 'last_name', 'first_name', 'data_nascimento', 'numero_telefone', 'foto_perfil']
         
     username = forms.CharField(label='Matrícula:')
     email = forms.EmailField(label='E-mail:')
@@ -37,6 +37,13 @@ class UsuarioForm(UserCreationForm):
         widget=forms.Select(attrs={'class': 'custom-select'}),
         initial='Discente'
     )
+    numero_telefone = forms.CharField(
+        label='Telefone:',
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': '(00) 00000-0000'}),
+        help_text='Número de telefone com DDD (opcional)'
+    )
     
     def save(self, commit=True):
         # Primeiro, salva o usuário
@@ -46,6 +53,7 @@ class UsuarioForm(UserCreationForm):
         
         # Obtém os dados do formulário
         data_nascimento = self.cleaned_data.get('data_nascimento')
+        numero_telefone = self.cleaned_data.get('numero_telefone')
         foto_perfil = self.cleaned_data.get('foto_perfil')
         
         # Garante que a data de nascimento não seja nula
@@ -61,12 +69,12 @@ class UsuarioForm(UserCreationForm):
                 perfil.foto_perfil = foto_perfil
             perfil.save()
         except Perfil.DoesNotExist:
-            Perfil.objects.create(
+            perfil = Perfil.objects.create(
                 matricula_perfil=user.username,
                 nome_perfil=user.last_name or user.username,
                 data_nascimento=data_nascimento,
+                numero_telefone=numero_telefone,
                 foto_perfil=foto_perfil
             )
         
         return user
-

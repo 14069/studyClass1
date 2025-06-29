@@ -29,6 +29,7 @@ class Perfil(models.Model):
     nome_perfil = models.CharField(max_length=255, default='Usuário')
     data_nascimento = models.DateField(null=True, blank=True, default=timezone.now)
     matricula_perfil = models.CharField(max_length=255, unique=True)
+    numero_telefone = models.CharField('Telefone', max_length=20, blank=True, null=True)
     foto_perfil = models.ImageField(upload_to='perfis/', blank=True, null=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)

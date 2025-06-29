@@ -62,6 +62,12 @@
                                 <i class="bi bi-person-vcard me-2 text-primary"></i>
                                 {{ user.username }}
                             </li>
+                            {% if user_profile.numero_telefone %}
+                            <li class="mb-2">
+                                <i class="bi bi-telephone me-2 text-primary"></i>
+                                {{ user_profile.numero_telefone }}
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
