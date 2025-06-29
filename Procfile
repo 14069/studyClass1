@@ -1,1 +1,1 @@
-web: python manage.py migrate && gunicorn social.wsgi --log-file -
+web: gunicorn social.wsgi --bind 0.0.0.0:$PORT --log-file -
