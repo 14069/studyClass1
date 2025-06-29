@@ -20,7 +20,8 @@ from django.views.generic.base import RedirectView
 from socialapp.views import index, sobre, home, contato 
 from socialapp.views import new_avalia, editar_avalia, deleta_avalia
 from socialapp.views import new_post, deleta_post, editar_post, like_post, add_comment, delete_comment, load_more_comments, my_posts, perfil_usuario
-
+from django.conf import settings
+from django.conf.urls.static import static
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
@@ -47,5 +48,7 @@ urlpatterns = [
     path('', include('usuario.urls')),
 
 
+    ]
 
-]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

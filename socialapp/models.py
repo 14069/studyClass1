@@ -1,9 +1,9 @@
 
 
 from django.db import models
-import PIL
 from PIL import  Image
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # Create your models here.
 class Avalia(models.Model):
@@ -26,20 +26,43 @@ class Postagem(models.Model):
 
 class Perfil(models.Model):
     id_perfil = models.AutoField(primary_key=True)
-    nome_perfil = models.CharField(max_length=255)
-    data_nascimento = models.DateField()
-    matricula_perfil = models.CharField(max_length=255)
-    foto_perfil =models.ImageField(blank=True)
+    nome_perfil = models.CharField(max_length=255, default='Usuário')
+    data_nascimento = models.DateField(null=True, blank=True, default=timezone.now)
+    matricula_perfil = models.CharField(max_length=255, unique=True)
+    foto_perfil = models.ImageField(upload_to='perfis/', blank=True, null=True)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Perfil'
+        verbose_name_plural = 'Perfis'
+        ordering = ['-data_criacao']
 
     def __str__(self):
         return self.nome_perfil
 
-    def save(self):
-        super().save()
-        im = Image.open(self.foto_perfil.path)
-        novo_tamanho = (100, 100)
-        im.thumbnail(novo_tamanho)
-        im.save(self.foto_perfil.path)
+    def save(self, *args, **kwargs):
+        # Se for uma atualização, obtém a instância antiga para verificar se a foto mudou
+        if self.pk:
+            old_instance = Perfil.objects.get(pk=self.pk)
+            if old_instance.foto_perfil and old_instance.foto_perfil != self.foto_perfil:
+                # Remove o arquivo de imagem antigo
+                old_instance.foto_perfil.delete(save=False)
+        
+        # Primeiro salva o modelo
+        super().save(*args, **kwargs)
+        
+        # Se houver uma foto de perfil, redimensiona
+        if self.foto_perfil:
+            try:
+                img = Image.open(self.foto_perfil.path)
+                if img.height > 400 or img.width > 400:  # Redimensiona apenas se for maior que 400px
+                    output_size = (400, 400)
+                    img.thumbnail(output_size)
+                    img.save(self.foto_perfil.path, quality=85)  # Salva com qualidade de 85% para reduzir o tamanho
+            except Exception as e:
+                # Se houver algum erro ao processar a imagem, apenas registre o erro
+                print(f"Erro ao processar a imagem: {e}")
 
     def foto_url(self):
         if self.foto_perfil and hasattr(self.foto_perfil, 'url'):

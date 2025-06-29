@@ -103,12 +103,9 @@
                 <p class="lead">No Study Class, acreditamos que o compartilhamento de conhecimento é a chave para o crescimento pessoal e profissional. Nossa missão é fornecer uma plataforma onde estudantes, profissionais e entusiastas possam se conectar, aprender e crescer juntos.</p>
                 <p>Fundada em 2025, nossa plataforma já conectou milhares de pessoas em todo o Brasil, criando uma comunidade vibrante e colaborativa.</p>
                 <div class="d-grid gap-3 d-sm-flex justify-content-sm-start">
-                    <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'index' %}">Comece Agora</a>
+                    <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'login' %}">Comece Agora</a>
                     <a class="btn btn-outline-secondary btn-lg px-4" href="{% url 'contato' %}">Fale Conosco</a>
                 </div>
-            </div>
-            <div class="col-lg-6">
-                <img class="img-fluid rounded" src="{% static 'assets/img/about-hero.jpg' %}" alt="Comunidade Study Class" />
             </div>
         </div>
     </div>
@@ -154,58 +151,13 @@
     </div>
 </section>
 
-<!-- Time -->
-<section class="py-5">
-    <div class="container px-4 px-lg-5">
-        <div class="text-center mb-5">
-            <h2 class="fw-bolder">Conheça Nossa Equipe</h2>
-            <p class="lead text-muted">Os profissionais por trás do Study Class</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="team-member" data-aos="zoom-in" data-aos-delay="100">
-                    <img src="{% static 'assets/img/team-1.jpg' %}" class="img-fluid rounded-circle mb-3" alt="Membro da equipe">
-                    <h4>João Silva</h4>
-                    <p class="text-muted">CEO & Fundador</p>
-                    <div class="social-links">
-                        <a href="#" class="text-muted me-2"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="text-muted"><i class="bi bi-github"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="team-member" data-aos="zoom-in" data-aos-delay="200">
-                    <img src="{% static 'assets/img/team-2.jpg' %}" class="img-fluid rounded-circle mb-3" alt="Membro da equipe">
-                    <h4>Maria Santos</h4>
-                    <p class="text-muted">Diretora de Tecnologia</p>
-                    <div class="social-links">
-                        <a href="#" class="text-muted me-2"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="text-muted"><i class="bi bi-github"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="team-member" data-aos="zoom-in" data-aos-delay="300">
-                    <img src="{% static 'assets/img/team-3.jpg' %}" class="img-fluid rounded-circle mb-3" alt="Membro da equipe">
-                    <h4>Carlos Oliveira</h4>
-                    <p class="text-muted">Diretor de Marketing</p>
-                    <div class="social-links">
-                        <a href="#" class="text-muted me-2"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="text-muted"><i class="bi bi-github"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- CTA -->
 <section class="py-5 bg-primary text-white">
     <div class="container px-4 px-lg-5 text-center">
         <h2 class="fw-bolder mb-4">Pronto para se juntar à nossa comunidade?</h2>
         <p class="lead mb-4">Cadastre-se agora e comece a compartilhar suas experiências com milhares de pessoas.</p>
-        <a class="btn btn-light btn-lg" href="{% url 'index' %}">Comece Agora</a>
+        <a class="btn btn-light btn-lg" href="{% url 'login' %}">Comece Agora</a>
     </div>
 </section>
 {% endblock %}

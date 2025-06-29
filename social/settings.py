@@ -155,3 +155,7 @@ LOGOUT_REDIRECT_URL = 'home'  # Página para onde o usuário será redirecionado
 LOGOUT_REQUEST_METHOD = 'POST'  # Garante que o logout só seja feito via POST
 
 LANGUAGE_CODE = 'pt-br'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')    
