@@ -3,26 +3,36 @@
 * Copyright 2013-2023 Start Bootstrap
 * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-clean-blog/blob/master/LICENSE)
 */
-window.addEventListener('DOMContentLoaded', () => {
+console.log('scripts.js carregado com sucesso!');
+document.addEventListener('DOMContentLoaded', function() {
     // Adiciona animação ao focar nos campos
     const formInputs = document.querySelectorAll('.form-control');
     formInputs.forEach(input => {
         input.addEventListener('focus', () => {
-            input.parentElement.classList.add('focused');
+            requestAnimationFrame(() => {
+                input.parentElement.classList.add('focused');
+            });
         });
         input.addEventListener('blur', () => {
-            if (input.value === '') {
-                input.parentElement.classList.remove('focused');
-            }
+            requestAnimationFrame(() => {
+                if (input.value === '') {
+                    input.parentElement.classList.remove('focused');
+                }
+            });
         });
     });
 
     // Melhorar experiência de usuário ao salvar
     const submitButton = document.querySelector('button[type="submit"]');
     if (submitButton) {
-        submitButton.addEventListener('click', () => {
+        submitButton.addEventListener('click', (e) => {
+            e.preventDefault();
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="bi bi-save"></i> Salvando...';
+            // Submeter o formulário após a animação
+            requestAnimationFrame(() => {
+                submitButton.form.submit();
+            });
         });
     }
 
@@ -41,8 +51,10 @@ window.addEventListener('DOMContentLoaded', () => {
     // Atualiza a data ao carregar a página
     const dateTimeInputs = document.querySelectorAll('input[type="datetime-local"]');
     dateTimeInputs.forEach(input => {
-        const now = new Date();
-        input.value = now.toISOString().slice(0, 16);
+        requestAnimationFrame(() => {
+            const now = new Date();
+            input.value = now.toISOString().slice(0, 16);
+        });
     });
 
     // Melhorar feedback visual nos botões de ação
