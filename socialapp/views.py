@@ -74,36 +74,6 @@ def perfil_usuario(request, username=None):
     
     return render(request, 'social/perfil_usuario.html', context)
 
-@login_required
-def editar_perfil(request):
-    # Obtém o perfil do usuário atual ou cria um novo se não existir
-    perfil, created = Perfil.objects.get_or_create(
-        nome_perfil=request.user.username,
-        defaults={
-            'nome_perfil': request.user.username,
-            'data_nascimento': None,
-            'matricula_perfil': '',
-        }
-    )
-    
-    if request.method == 'POST':
-        form = PerfilForms(request.POST, request.FILES, instance=perfil)
-        if form.is_valid():
-            perfil = form.save(commit=False)
-            perfil.nome_perfil = request.user.username  # Garante que o nome do perfil seja o nome de usuário
-            perfil.save()
-            messages.success(request, 'Perfil atualizado com sucesso!')
-            return redirect('perfil_usuario')
-    else:
-        form = PerfilForms(instance=perfil)
-    
-    context = {
-        'form': form,
-        'perfil': perfil,
-    }
-    
-    return render(request, 'social/editar_perfil.html', context)
-
 def home(request):
     postagens = Postagem.objects.all().order_by('-data_postagem')[:5]
     return render(request, 'social/home.html', {'postagens': postagens})
@@ -113,9 +83,6 @@ def contato(request):
 
 def sobre(request):
     return render(request, 'social/about.html')
-
-#def postar(request):
-    return render(request, 'social/post.html')
 
 def new_avalia(request):
     avas = Avalia.objects.all()
@@ -262,13 +229,49 @@ def add_comment(request, post_id):
             return JsonResponse({
                 'success': True,
                 'comment': {
+                    'id': comment.id,
                     'content': comment.content,
                     'user': comment.user.username,
-                    'created_at': local_created_at.strftime('%d/%m/%Y %H:%M')
+                    'created_at': local_created_at.strftime('%d/%m/%Y %H:%M'),
+                    'is_owner': comment.user == request.user
                 },
                 'comments_count': post.comments.count()
             })
     return JsonResponse({'success': False, 'errors': form.errors if 'form' in locals() else 'Invalid request'})
+
+
+@login_required
+def load_more_comments(request, post_id):
+    if request.method == 'GET':
+        post = get_object_or_404(Postagem, id_postagem=post_id)
+        page = int(request.GET.get('page', 1))
+        comments_per_page = 5
+        
+        # Calcula o offset baseado na página
+        offset = (page - 1) * comments_per_page
+        
+        # Pega os comentários com limite e offset
+        comments = post.comments.all().order_by('created_at')[offset:offset + comments_per_page]
+        
+        # Prepara a lista de comentários para o JSON
+        comments_data = [{
+            'id': comment.id,
+            'content': comment.content,
+            'user': comment.user.username,
+            'created_at': timezone.localtime(comment.created_at).strftime('%d/%m/%Y %H:%M'),
+            'is_owner': comment.user == request.user
+        } for comment in comments]
+        
+        # Verifica se há mais comentários para carregar
+        has_more = post.comments.count() > (offset + comments_per_page)
+        
+        return JsonResponse({
+            'success': True,
+            'comments': comments_data,
+            'has_more': has_more,
+            'next_page': page + 1 if has_more else None
+        })
+    return JsonResponse({'success': False, 'errors': 'Invalid request'})
 
 
 @login_required

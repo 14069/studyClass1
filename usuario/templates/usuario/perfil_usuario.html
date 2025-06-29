@@ -2,64 +2,140 @@
 {% load static %}
 
 {% block content %}
-
-<section class="py-5">
-    <div class="container px-4 px-lg-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-lg border-0 rounded-4">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <img src="{% static 'assets/img/user.png' %}" alt="Avatar" width="120" class="rounded-circle shadow">
-                            <h3 class="mt-3">{{ user.last_name }}</h3>
-                            <p class="text-muted">{{ user.get_full_name }}</p>
-                        </div>
-                        <hr>
-                        <div class="site-heading text-center">
-                            <h1>Meu Perfil</h1>
-                            <span class="subheading">Seus dados cadastrados na plataforma</span>
-                        </div>
-                        <hr>
-                        <div class="row mb-3">
-                            <div class="col-sm-4 fw-bold">Matrícula:</div>
-                            <div class="col-sm-8">{{ user.username }}</div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-sm-4 fw-bold">Nome Completo:</div>
-                            <div class="col-sm-8">{{ user.last_name }}</div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-sm-4 fw-bold">E-mail:</div>
-                            <div class="col-sm-8">{{ user.email }}</div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-sm-4 fw-bold">Status:</div>
-                            <div class="col-sm-8">
-                                {% if user.first_name == 'Docente' %}
-                                    <span class="badge bg-primary">Docente</span>
-                                {% elif user.first_name == 'Discente' %}
-                                    <span class="badge bg-success">Discente</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">{{ user.first_name }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Coluna do perfil -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-4">
+                        <img src="{% static 'assets/img/user.png' %}" 
+                             alt="{{ user.get_full_name }}" 
+                             class="rounded-circle shadow" 
+                             width="150" 
+                             height="150">
+                    </div>
+                    
+                    <h2 class="h4 fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h2>
+                    <p class="text-muted mb-3">@{{ user.username }}</p>
+                    
+                    <div class="d-flex justify-content-center gap-3 mb-3">
                         <div class="text-center">
-                            <form method="post" action="{% url 'logout' %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-danger">
-                                    <i class="bi bi-box-arrow-right"></i> Sair
-                                </button>
-                            </form>
+                            <div class="h5 mb-0 fw-bold">{{ posts|length }}</div>
+                            <small class="text-muted">Postagens</small>
                         </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="badge {% if user.first_name == 'Docente' %}bg-primary{% elif user.first_name == 'Discente' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ user.first_name|default:'Usuário' }}
+                        </span>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-2">
+                        <form method="post" action="{% url 'logout' %}" class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i>Sair
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-start">
+                        <h5 class="h6 fw-bold text-uppercase text-muted mb-3">Informações</h5>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2">
+                                <i class="bi bi-envelope me-2 text-primary"></i>
+                                {{ user.email }}
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-person-vcard me-2 text-primary"></i>
+                                {{ user.username }}
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Coluna das postagens -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">
+                    <i class="bi bi-collection me-2"></i>
+                    {% if is_own_profile %}Minhas Postagens{% else %}Postagens de {{ user.username }}{% endif %}
+                </h4>
+                {% if is_own_profile %}
+                    <a href="{% url 'new_post' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Nova Postagem
+                    </a>
+                {% endif %}
+            </div>
+            
+            {% if posts %}
+                {% for post in posts %}
+                    <div class="card shadow-sm border-0 rounded-4 mb-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-person-circle text-primary" style="font-size: 2rem;"></i>
+                                <div class="ms-3">
+                                    <h6 class="mb-0 fw-bold">{{ post.autor_postagem }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ post.data_postagem|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <h5 class="card-title fw-bold text-primary">{{ post.titulo_postagem }}</h5>
+                            <p class="card-text">{{ post.conteudo_postagem|linebreaksbr }}</p>
+                            
+                            {% if post.imagem_postagem %}
+                                <div class="mb-3">
+                                    <img src="{{ post.imagem_postagem.url }}" 
+                                         alt="Imagem da postagem" 
+                                         class="img-fluid rounded-3">
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary me-2">
+                                        <i class="bi bi-heart"></i> Curtir
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-chat"></i> Comentar
+                                    </button>
+                                </div>
+                                <a href="#" class="text-muted small">
+                                    <i class="bi bi-share"></i> Compartilhar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="bi bi-newspaper"></i>
+                    </div>
+                    <h3 class="h4 text-muted">
+                        {% if is_own_profile %}
+                            Você ainda não tem nenhuma postagem.
+                        {% else %}
+                            Este usuário ainda não tem postagens.
+                        {% endif %}
+                    </h3>
+                    {% if is_own_profile %}
+                        <a href="{% url 'new_post' %}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle me-2"></i>Criar sua primeira postagem
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
     </div>
-</section>
+</div>
 {% endblock %}

@@ -87,40 +87,29 @@
                         <!-- Seção de Comentários -->
                         <div class="collapse mt-3" id="comments-{{ postagem.id_postagem }}">
                             <hr>
-                            <div class="comments-list mb-3">
-                                {% for comment in postagem.comments.all %}
-                                    <div class="d-flex justify-content-between align-items-start mb-2 comment-item" data-comment-id="{{ comment.id }}">
-                                        <div class="d-flex">
-                                            <div class="flex-shrink-0">
-                                                <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
-                                            </div>
-                                            <div class="ms-2">
-                                                <div class="d-flex align-items-center">
-                                                    <strong class="me-2">{{ comment.user.username }}</strong>
-                                                    {% if comment.user == request.user or request.user.is_superuser %}
-                                                    <button class="btn btn-link text-danger p-0 ms-2 delete-comment" 
-                                                            data-comment-id="{{ comment.id }}"
-                                                            data-bs-toggle="tooltip" 
-                                                            title="{% if comment.user == request.user %}Excluir meu comentário{% else %}Excluir comentário (Admin){% endif %}">
-                                                        <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
-                                                    </button>
-                                                    {% endif %}
-                                                </div>
-                                                <p class="mb-0">
-                                                    {{ comment.content }}
-                                                </p>
-                                                <small class="text-muted">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
-                                            </div>
-                                        </div>
+                            <div class="comments-list" id="comments-list-{{ postagem.id_postagem }}" data-post-id="{{ postagem.id_postagem }}" data-next-page="1">
+                                <!-- Comentários serão carregados aqui via JavaScript -->
+                                <div class="text-center py-3">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
                                     </div>
-                                {% empty %}
-                                    <p class="text-muted small no-comments">Nenhum comentário ainda.</p>
-                                {% endfor %}
+                                </div>
                             </div>
-                            <form class="comment-form d-flex" action="{% url 'add_comment' postagem.id_postagem %}" data-post-id="{{ postagem.id_postagem }}" method="POST">
+                            <div class="no-comments text-center py-3 d-none" id="no-comments-{{ postagem.id_postagem }}">
+                                <i class="bi bi-chat-square-text" style="font-size: 2rem;"></i>
+                                <p class="mb-0">Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+                            </div>
+                            <div class="load-more-comments text-center py-2 d-none" id="load-more-{{ postagem.id_postagem }}">
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadMoreComments({{ postagem.id_postagem }})">
+                                    <i class="bi bi-arrow-down-circle me-1"></i> Carregar mais comentários
+                                </button>
+                            </div>
+                            <form class="comment-form d-flex mt-3" action="{% url 'add_comment' postagem.id_postagem %}" data-post-id="{{ postagem.id_postagem }}" method="POST">
                                 {% csrf_token %}
                                 {{ comment_form.content }}
-                                <button type="submit" class="btn btn-primary btn-sm ms-2 rounded-pill">Enviar</button>
+                                <button type="submit" class="btn btn-primary btn-sm ms-2">
+                                    <i class="bi bi-send"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -138,6 +127,174 @@
 
 {% block extra_js %}
 <script>
+// Variáveis globais
+let isLoadingComments = false;
+
+// Função para renderizar um comentário
+function renderComment(comment) {
+    const isOwner = comment.is_owner ? 'true' : 'false';
+    const deleteButton = comment.is_owner ? 
+        `<button class="btn btn-link text-danger p-0 ms-2 delete-comment" 
+                data-comment-id="${comment.id}"
+                data-bs-toggle="tooltip" 
+                title="Excluir meu comentário">
+            <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+        </button>` : 
+        ({{ request.user.is_superuser|yesno:'true,false' }} ? 
+        `<button class="btn btn-link text-danger p-0 ms-2 delete-comment" 
+                data-comment-id="${comment.id}"
+                data-bs-toggle="tooltip" 
+                title="Excluir comentário (Admin)">
+            <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
+        </button>` : '');
+    
+    return `
+        <div class="comment-item mb-3" data-comment-id="${comment.id}">
+            <div class="d-flex">
+                <div class="flex-shrink-0">
+                    <i class="bi bi-person-circle me-2" style="font-size: 1.5rem;"></i>
+                </div>
+                <div class="ms-2">
+                    <div class="d-flex align-items-center">
+                        <strong class="me-2">${comment.user}</strong>
+                        ${deleteButton}
+                    </div>
+                    <p class="mb-1">${comment.content}</p>
+                    <small class="text-muted">${comment.created_at}</small>
+                </div>
+            </div>
+        </div>`;
+}
+
+// Função para carregar mais comentários
+function loadMoreComments(postId) {
+    if (isLoadingComments) return;
+    
+    const commentsList = document.getElementById(`comments-list-${postId}`);
+    const loadMoreButton = document.getElementById(`load-more-${postId}`);
+    const noComments = document.getElementById(`no-comments-${postId}`);
+    const nextPage = parseInt(commentsList.dataset.nextPage);
+    
+    if (!nextPage) return;
+    
+    isLoadingComments = true;
+    
+    // Mostra o spinner
+    commentsList.innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>`;
+    
+    // Faz a requisição para carregar mais comentários
+    fetch(`/post/${postId}/load-more-comments/?page=${nextPage}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove o spinner
+                commentsList.innerHTML = '';
+                
+                // Adiciona os novos comentários
+                if (data.comments.length > 0) {
+                    data.comments.forEach(comment => {
+                        commentsList.insertAdjacentHTML('beforeend', renderComment(comment));
+                    });
+                    
+                    // Atualiza a próxima página ou esconde o botão
+                    if (data.has_more) {
+                        commentsList.dataset.nextPage = data.next_page;
+                        loadMoreButton.classList.remove('d-none');
+                    } else {
+                        loadMoreButton.classList.add('d-none');
+                    }
+                    
+                    // Esconde a mensagem de nenhum comentário
+                    noComments.classList.add('d-none');
+                } else if (nextPage === 1) {
+                    // Se não há comentários na primeira página
+                    commentsList.innerHTML = '';
+                    noComments.classList.remove('d-none');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar comentários:', error);
+            commentsList.innerHTML = '<div class="text-danger text-center py-3">Erro ao carregar comentários. Tente novamente.</div>';
+        })
+        .finally(() => {
+            isLoadingComments = false;
+        });
+}
+
+// Função para carregar os primeiros comentários quando o botão de comentários for clicado
+document.addEventListener('click', function(e) {
+    const commentButton = e.target.closest('[data-bs-toggle="collapse"]');
+    if (commentButton) {
+        const targetId = commentButton.getAttribute('data-bs-target');
+        const postId = targetId.replace('#comments-', '');
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        
+        // Se ainda não carregou os comentários iniciais
+        if (commentsList && commentsList.children.length === 1) {
+            loadMoreComments(postId);
+        }
+    }
+});
+
+// Função para adicionar um novo comentário à lista
+function addNewComment(postId, commentData) {
+    const commentsList = document.getElementById(`comments-list-${postId}`);
+    const noComments = document.getElementById(`no-comments-${postId}`);
+    const loadMoreButton = document.getElementById(`load-more-${postId}`);
+    
+    // Se não houver comentários ainda, remove a mensagem de nenhum comentário
+    if (noComments && !noComments.classList.contains('d-none')) {
+        noComments.classList.add('d-none');
+    }
+    
+    // Adiciona o novo comentário no início da lista
+    if (commentsList) {
+        // Se estiver mostrando o spinner, remove ele
+        if (commentsList.children.length === 1 && commentsList.children[0].querySelector('.spinner-border')) {
+            commentsList.innerHTML = '';
+        }
+        
+        // Adiciona o novo comentário
+        commentsList.insertAdjacentHTML('afterbegin', renderComment(commentData));
+        
+        // Mostra o botão de carregar mais se não estiver visível
+        if (loadMoreButton) {
+            loadMoreButton.classList.remove('d-none');
+        }
+        
+        // Rola até o novo comentário
+        const firstComment = commentsList.firstElementChild;
+        if (firstComment) {
+            firstComment.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+    
+    // Atualiza a contagem de comentários
+    updateCommentCount(postId, 1);
+}
+
+// Função para atualizar a contagem de comentários
+function updateCommentCount(postId, increment) {
+    const commentCountElement = document.getElementById(`comment-count-${postId}`);
+    if (commentCountElement) {
+        const currentCount = parseInt(commentCountElement.textContent) || 0;
+        const newCount = Math.max(0, currentCount + increment); // Garante que não fique negativo
+        commentCountElement.textContent = newCount;
+        
+        // Atualiza o texto plural/singular
+        const commentTextElement = commentCountElement.nextElementSibling;
+        if (commentTextElement) {
+            commentTextElement.textContent = newCount === 1 ? ' comentário' : ' comentários';
+        }
+    }
+}
+
 // Função para obter o token CSRF
 function getCookie(name) {
     let cookieValue = null;
@@ -238,54 +395,90 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- LÓGICA DE COMENTAR ---
-    const commentForms = document.querySelectorAll('.comment-form');
-    commentForms.forEach(form => {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            console.log("Comment form submission intercepted.");
+    document.addEventListener('submit', function(event) {
+        const form = event.target.closest('.comment-form');
+        if (!form) return;
+        
+        event.preventDefault();
+        console.log("Comment form submission intercepted.");
 
-            const postId = this.dataset.postId;
-            const contentInput = this.querySelector('input[name="content"]');
-            const url = this.getAttribute('action');
+        const postId = form.getAttribute('data-post-id');
+        const formData = new FormData(form);
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        const commentsList = document.getElementById(`comments-list-${postId}`);
+        const noComments = document.getElementById(`no-comments-${postId}`);
+
+        // Desabilita o botão e mostra o spinner
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na resposta do servidor');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Limpa o formulário
+                form.reset();
+                
+                // Adiciona o novo comentário à lista
+                addNewComment(postId, data.comment);
+                
+                // Atualiza a contagem de comentários
+                updateCommentCount(postId, 1);
+                
+                // Mostra mensagem de sucesso
+                const successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success alert-dismissible fade show mt-2';
+                successAlert.role = 'alert';
+                successAlert.innerHTML = `
+                    Comentário adicionado com sucesso!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+                `;
+                form.parentNode.insertBefore(successAlert, form.nextSibling);
+                
+                // Remove a mensagem após 3 segundos
+                setTimeout(() => {
+                    successAlert.classList.remove('show');
+                    setTimeout(() => successAlert.remove(), 150);
+                }, 3000);
+            } else {
+                throw new Error(data.errors || 'Erro ao adicionar comentário');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger alert-dismissible fade show mt-2';
+            errorAlert.role = 'alert';
+            errorAlert.innerHTML = `
+                Erro ao adicionar comentário: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            `;
+            form.parentNode.insertBefore(errorAlert, form.nextSibling);
             
-            if (!contentInput || !contentInput.value.trim()) return;
-
-            fetch(url, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrftoken },
-                body: new FormData(this)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const commentsList = document.querySelector(`#comments-${postId} .comments-list`);
-                    const noCommentsMessage = commentsList.querySelector('.no-comments');
-                    if (noCommentsMessage) noCommentsMessage.remove();
-
-                    const newComment = document.createElement('div');
-                    newComment.classList.add('d-flex', 'mb-2');
-                    newComment.innerHTML = `
-                        <div class="ms-2">
-                            <p class="mb-0">
-                                <strong class="me-2">${data.comment.user}</strong>
-                                <span>${data.comment.content}</span>
-                            </p>
-                            <small class="text-muted">${data.comment.created_at}</small>
-                        </div>
-                    `;
-                    commentsList.appendChild(newComment);
-                    contentInput.value = '';
-
-                    const commentCountSpan = document.getElementById(`comment-count-${postId}`);
-                    if (commentCountSpan) {
-                        commentCountSpan.textContent = data.comments_count;
-                    }
-                } else {
-                    console.error('Error adding comment:', data.errors);
-                    alert('Não foi possível adicionar o comentário.');
-                }
-            })
-            .catch(error => console.error('Error submitting comment:', error));
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                errorAlert.classList.remove('show');
+                setTimeout(() => errorAlert.remove(), 150);
+            }, 5000);
+        })
+        .finally(() => {
+            // Restaura o botão
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
         });
     });
 });
