@@ -52,10 +52,9 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form action="{% url 'deleta_post' postagem.id_postagem %}" method="POST" class="d-inline">
+                                        <form action="{% url 'deleta_post' postagem.id_postagem %}" method="POST" class="d-inline delete-post-form">
                                             {% csrf_token %}
-                                            <button type="submit" class="dropdown-item text-danger" 
-                                                    onclick="return confirm('Tem certeza que deseja excluir esta postagem?');">
+                                            <button type="submit" class="dropdown-item text-danger">
                                                 <i class="bi bi-trash me-2"></i> Excluir
                                             </button>
                                         </form>
@@ -189,6 +188,18 @@ function getCookie(name) {
 document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
     
+    // Adiciona manipulador de eventos para formulários de exclusão de postagem
+    document.querySelectorAll('.delete-post-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Tem certeza que deseja excluir esta postagem?')) {
+                // Se o usuário confirmar, envia o formulário
+                this.submit();
+            }
+        });
+    });
+
     // Inicializa os tooltips do Bootstrap
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {

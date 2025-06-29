@@ -58,7 +58,7 @@ class Telefone(models.Model):
 class Perfil_post(models.Model):
     id_perfil_post = models.AutoField(primary_key=True)
     id_perfil = models.ForeignKey(Perfil, models.DO_NOTHING, db_column='id_perfil')
-    id_postagem = models.ForeignKey(Postagem, models.DO_NOTHING, db_column='id_postagem')
+    id_postagem = models.ForeignKey(Postagem, on_delete=models.CASCADE, db_column='id_postagem')
 
     def __str__(self):
         return str(self.id_perfil)
