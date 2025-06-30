@@ -66,8 +66,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Adicionando o middleware personalizado para servir arquivos de mídia
-    'socialapp.middleware.MediaMiddleware',
 ]
 
 # Configurações do Cloudinary
