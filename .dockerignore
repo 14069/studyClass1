@@ -1,0 +1,35 @@
+# Arquivos do Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Arquivos de ambiente
+.env
+.env.*
+!.env.example
+
+# Banco de dados SQLite
+*.sqlite3
+*.sql
+
+# Diretórios de desenvolvimento
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Arquivos estáticos coletados
+/staticfiles/
+
+# Arquivos de mídia
+/media/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
