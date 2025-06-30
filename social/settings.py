@@ -2,6 +2,9 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+import cloudinary
+import dj_database_url
+
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -14,13 +17,16 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'xx8xnfk0-7!40=^osbwtl9@bgb1d*ty7f(aq_*-3&z
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Limpa entradas vazias nas listas e adiciona domínio de produção
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
-if 'studyclass.up.railway.app' not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append('studyclass.up.railway.app')
+ALLOWED_HOSTS = list(set([
+    *[host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()],
+    'studyclass.up.railway.app'
+]))
 
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
-if 'https://studyclass.up.railway.app' not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append('https://studyclass.up.railway.app')
+CSRF_TRUSTED_ORIGINS = list(set([
+    *[origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()],
+    'https://studyclass.up.railway.app'
+]))
+
 
 LOGGING = {
     'version': 1,
@@ -52,7 +58,6 @@ INSTALLED_APPS = [
     'socialapp',
     'usuario',
     'widget_tweaks',
-    'whitenoise',
     'cloudinary_storage',
     'cloudinary',
 ]
@@ -68,17 +73,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Configuração do Django Cloudinary Storage
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', 'dczduojq9'),
-    'API_KEY': os.getenv('CLOUDINARY_API_KEY', '995412914267899'),
-    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', '2L3uu2-23bTpnPc1wshFeUJjzwo'),
-    'SECURE': True,
-}
 
-# Armazenamento de mídia padrão
+
+# Arquivos de mídia (Cloudinary)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# Cloudinary Config
+cloudinary.config( 
+  cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
+  api_key = os.getenv('CLOUDINARY_API_KEY'), 
+  api_secret = os.getenv('CLOUDINARY_API_SECRET'),
+  secure = True
+)
 
 ROOT_URLCONF = 'social.urls'
 
@@ -166,7 +172,7 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
     
     # Configuração para servir arquivos estáticos em produção
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+ #   STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
     LOGGING = {
         'version': 1,
