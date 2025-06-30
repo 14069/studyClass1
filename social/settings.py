@@ -9,7 +9,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-ry_-s8mnz=o*uo7^i0z1)mnr9gs73l0jtr*fnj-rutqsdjkpvh')
+SECRET_KEY = os.getenv('SECRET_KEY', 'xx8xnfk0-7!40=^osbwtl9@bgb1d*ty7f(aq_*-3&zwgvys0)p')
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
@@ -69,12 +69,27 @@ MIDDLEWARE = [
 ]
 
 # Configurações do Cloudinary
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+# Configuração do Cloudinary
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', 'dczduojq9'),
+    api_key=os.getenv('CLOUDINARY_API_KEY', '995412914267899'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET', '2L3uu2-23bTpnPc1wshFeUJjzwo'),
+    secure=True
+)
+
+# Configuração do Django Cloudinary Storage
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('dczduojq9'),
-    'API_KEY': os.getenv('995412914267899'),
-    'API_SECRET': os.getenv('2L3uu2-23bTpnPc1wshFeUJjzwo'),
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', 'dczduojq9'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY', '995412914267899'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', '2L3uu2-23bTpnPc1wshFeUJjzwo'),
+    'SECURE': True,
 }
 
+# Armazenamento de mídia padrão
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 

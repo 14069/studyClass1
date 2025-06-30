@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static
+
 from socialapp.views import (
     index, sobre, home, contato,
     new_avalia, editar_avalia, deleta_avalia, rate_post, get_post_ratings,
@@ -45,3 +48,8 @@ urlpatterns = [
     # Autenticação
     path('', include('usuario.urls')),
 ]
+
+# Servir arquivos estáticos em desenvolvimento
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Em produção, o servidor web deve servir os arquivos estáticos diretamente
