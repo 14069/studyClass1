@@ -71,9 +71,6 @@ MIDDLEWARE = [
 
 
 
-# Configuração de armazenamento de arquivos de mídia
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ROOT_URLCONF = 'social.urls'
 
@@ -140,12 +137,6 @@ LOGOUT_REQUEST_METHOD = 'POST'
 
 LANGUAGE_CODE = 'pt-br'
 
-# Configurações de mídia
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Garante que a pasta de mídia exista
-os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 # Configurações de segurança para produção
 if not DEBUG:
