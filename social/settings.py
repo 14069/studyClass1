@@ -9,11 +9,10 @@ load_dotenv()
 # Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Chave secreta (sempre tire do código no repo)
-SECRET_KEY = 'a88ajaeWzDwtH6-4cB4W7OypHAFl69nqXAgAlSBggK9ROZC1FLBHGcljPV1_JENgc91sC_W-YnOBgUO1fgxKIQ'
-
 # DEBUG (converte string para bool)
 DEBUG=False
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # Hosts permitidos (limpa espaços e entradas vazias)
 ALLOWED_HOSTS=['studyclass.up.railway.app']
@@ -24,22 +23,14 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 # Configuração do banco de dados
 # Se DATABASE_URL estiver definida (como no Railway), use-a
-if os.getenv('DATABASE_URL'):
-    DATABASES = {
+DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-else:
-    # Configuração local de desenvolvimento
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
+
 
 
 # Configurações estáticos
@@ -51,6 +42,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Configuração para servir arquivos de mídia em desenvolvimento
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 
 # Configuração do WhiteNoise
 WHITENOISE_USE_FINDERS = True
@@ -127,10 +120,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-
+# Configuração do WSGI
 WSGI_APPLICATION = 'social.wsgi.application'
 
-# você pode deixar exatamente como já tem no seu arquivo
+# Configuração do URLconf
+ROOT_URLCONF = 'social.urls'
+
 
 # Configurações de segurança para produção (só ativa quando DEBUG=False)
 if not DEBUG:
