@@ -6,23 +6,17 @@
 {% block extra_css %}
 <style>
     /* Estilos específicos para a página Sobre */
-    .about-header {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-        color: white;
-        padding: 6rem 0 4rem;
-        position: relative;
-        overflow: hidden;
+    .masthead {
+        padding: 10rem 0;
     }
     
-
-    
-    .about-header h1 {
+    .masthead .page-heading h1 {
         font-weight: 800;
         margin-bottom: 1rem;
     }
     
-    .about-header p {
-        font-size: 1.25rem;
+    .masthead .subheading {
+        font-size: 1.5rem;
         opacity: 0.9;
     }
     
@@ -80,10 +74,16 @@
 
 {% block header %}
 <!-- Page Header-->
-<header class="about-header">
-    <div class="container px-4 px-lg-5 text-center">
-        <h1 class="display-4 fw-bold">Sobre o Study Class</h1>
-        <p class="lead">Conectando pessoas e compartilhando conhecimento de forma simples e eficiente</p>
+<header class="masthead">
+    <div class="container position-relative px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <div class="page-heading text-center">
+                    <h1>Sobre o Study Class</h1>
+                    <span class="subheading">Conectando pessoas e compartilhando conhecimento de forma simples e eficiente</span>
+                </div>
+            </div>
+        </div>
     </div>
 </header>
 {% endblock %}
@@ -94,9 +94,16 @@
     <div class="container px-4 px-lg-5 my-5">
         <div class="row gx-4 gx-lg-5 align-items-center">
             <div class="col-lg-6">
-                <h2 class="fw-bolder mb-4">Nossa Missão</h2>
-                <p class="lead">No Study Class, acreditamos que o compartilhamento de conhecimento é a chave para o crescimento pessoal e profissional. Nossa missão é fornecer uma plataforma onde estudantes, profissionais e entusiastas possam se conectar, aprender e crescer juntos.</p>
-                <p>Fundada em 2025, nossa plataforma já conectou milhares de pessoas em todo o Brasil, criando uma comunidade vibrante e colaborativa.</p>
+                <h2 class="fw-bolder mb-4">Sobre</h2>
+                <p class="lead">
+                    No <strong>Study Class</strong>, acreditamos que o compartilhamento de conhecimento é a chave para o crescimento pessoal e profissional. Nossa missão é fornecer uma plataforma onde estudantes, profissionais e entusiastas possam se conectar, aprender e evoluir juntos.
+                </p>
+                <p>
+                    Este projeto foi desenvolvido por <strong>Agacy Júnior</strong>, acadêmico do <strong>5º período do curso de Sistemas para Internet</strong>, na disciplina de <strong>Programação Web</strong>, sob orientação do professor <strong>Rogério</strong>, no <strong>IFTO – Campus Araguatins</strong>.
+                </p>
+                <p>
+                    Fundado em <strong>2025</strong>, o Study Class já conectou milhares de pessoas em todo o Brasil, criando uma comunidade vibrante, colaborativa e focada no aprendizado mútuo.
+                </p>
                 <div class="d-grid gap-3 d-sm-flex justify-content-sm-start">
                     <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'login' %}">Comece Agora</a>
                     <a class="btn btn-outline-secondary btn-lg px-4" href="{% url 'contato' %}">Fale Conosco</a>

@@ -1,119 +1,98 @@
+{% extends 'social/base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Social - StudyClass</title>
+{% block title %}Bem-vindo ao Study Class{% endblock %}
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+{% block extra_css %}
+<style>
+    .post-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+{% endblock %}
 
-    <!-- Bootstrap Icons -->
-    <link href="{% static 'bootstrap-icons/font/bootstrap-icons.css' %}" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
-
-    <meta name="description" content="Plataforma de interação, estudo e compartilhamento de conhecimento.">
-    <meta name="author" content="Study Class">
-</head>
-<body class="bg-light">
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-info" href="{% url 'home' %}">
-                <i class="bi bi-people-fill"></i> Social - StudyClass
-            </a>
-            <div class="d-flex">
-                <a href="{% url 'new_usuario' %}" class="btn btn-light text-info fw-bold me-2">Criar Conta</a>
-                <a href="{% url 'login' %}" class="btn btn-light text-info fw-bold">Login</a>
-                <a href="{% url 'sobre' %}" class="btn btn-light text-info fw-bold">Sobre</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Header -->
-    <header class="py-5 bg-dark text-center">
-        <div class="container">
-            <h1 class="display-5 fw-bold text-white">
-				<span class="text-info">Bem-vindo ao Study Class</span>
-			</h1>
-            <p class="lead text-white-50">
-				<span class="text-info">Acesse para interagir, comentar e compartilhar conhecimento!</span>
-			</p>
-        </div>
-    </header>
-
-    <!-- Conteúdo Principal -->
- <main class="container my-5">
-        <div class="row justify-content-center">
-            <section class="col-lg-8">   
-                <h2 class="mb-4 fw-bold">Postagens Recentes</h2>
-
-                {% for postagem in postagens %}
-                    <div class="card shadow-sm border-0 rounded-4 mb-4">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-person-circle text-primary" style="font-size: 2.5rem;"></i>
-                                <div class="ms-3">
-                                    <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
-                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ postagem.data_postagem|date:"d/m/Y H:i" }}</small>
-                                </div>
-                            </div>
-
-                            <h4 class="card-title fw-bold text-primary">{{ postagem.titulo_postagem }}</h4>
-                            <p class="card-text">{{ postagem.conteudo_postagem|truncatewords:50 }}</p>
-
-                            <div class="d-flex gap-2 mt-3">
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                    <i class="bi bi-heart me-1"></i> Curtir
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                    <i class="bi bi-chat me-1"></i> Comentar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                {% empty %}
-                    <div class="alert alert-info">Nenhuma postagem encontrada.</div>
-                {% endfor %}
-
-                <p class="text-center text-muted fst-italic mt-5">Entre na plataforma para interagir com as postagens!</p>
-            </section>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white py-4 border-top mt-5">
-        <div class="container text-center text-muted">
-            &copy; {% now 'Y' %} Study Class. Todos os direitos reservados.
-        </div>
-    </footer>
-
-    <!-- Modal de Login -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="loginModalLabel"><i class="bi bi-box-arrow-in-right me-2"></i>Faça login para interagir!</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Para curtir, comentar e criar suas próprias postagens, é necessário estar logado.</p>
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'login' %}" class="btn btn-primary">Ir para o Login</a>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+{% block header %}
+<!-- Page Header-->
+<header class="masthead">
+    <div class="container position-relative px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <div class="site-heading text-center">
+                    <h1>Bem-vindo ao Study Class</h1>
+                    <span class="subheading">Acesse para interagir, comentar e compartilhar conhecimento!</span>
+                    <div class="mt-4">
+                        <a href="{% url 'login' %}" class="btn btn-light btn-lg me-2">Entrar</a>
+                        <a href="{% url 'new_usuario' %}" class="btn btn-outline-light btn-lg">Criar Conta</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</header>
+{% endblock %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block content %}
+<!-- Conteúdo Principal -->
+<main class="container mb-5">
+    <div class="row justify-content-center">
+        <section class="col-lg-8">   
+            <h2 class="mb-4 fw-bold">Postagens Recentes</h2>
 
-</body>
-</html>
+            {% for postagem in postagens %}
+                <div class="card post-card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 2.5rem;"></i>
+                            <div class="ms-3">
+                                <h5 class="mb-0 fw-bold">{{ postagem.autor_postagem }}</h5>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ postagem.data_postagem|date:"d/m/Y H:i" }}</small>
+                            </div>
+                        </div>
+
+                        <h4 class="card-title fw-bold text-primary">{{ postagem.titulo_postagem }}</h4>
+                        <p class="card-text">{{ postagem.conteudo_postagem|truncatewords:50 }}</p>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="bi bi-heart me-1"></i> Curtir
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="bi bi-chat me-1"></i> Comentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="alert alert-info">Nenhuma postagem encontrada.</div>
+            {% endfor %}
+
+            <p class="text-center text-muted fst-italic mt-5">Entre na plataforma para interagir com as postagens!</p>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Modal de Login -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="loginModalLabel"><i class="bi bi-box-arrow-in-right me-2"></i>Faça login para interagir!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Para curtir, comentar e criar suas próprias postagens, é necessário estar logado.</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'login' %}" class="btn btn-primary">Ir para o Login</a>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

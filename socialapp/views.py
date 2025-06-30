@@ -114,14 +114,43 @@ def perfil_usuario(request, username=None):
     return render(request, 'social/perfil_usuario.html', context)
 
 def home(request):
+    # Obtém as últimas 5 postagens ordenadas por data
     postagens = Postagem.objects.all().order_by('-data_postagem')[:5]
-    return render(request, 'social/home.html', {'postagens': postagens})
+    
+    # Obtém os perfis dos autores das postagens
+    autores = [post.autor_postagem for post in postagens]
+    perfis = Perfil.objects.filter(nome_perfil__in=autores)
+    perfis_dict = {perfil.nome_perfil: perfil for perfil in perfis}
+    
+    # Adiciona o perfil a cada postagem
+    for post in postagens:
+        post.perfil = perfis_dict.get(post.autor_postagem, None)
+    
+    return render(request, 'social/home.html', {
+        'postagens': postagens,
+        'perfis': perfis_dict
+    })
 
 def contato(request):
     return render(request, 'social/contact.html')
 
 def sobre(request):
-    return render(request, 'social/about.html')
+    # Obtém as últimas 5 postagens ordenadas por data para a seção de depoimentos
+    depoimentos = Postagem.objects.all().order_by('-data_postagem')[:5]
+    
+    # Obtém os perfis dos autores dos depoimentos
+    autores = [depoimento.autor_postagem for depoimento in depoimentos]
+    perfis = Perfil.objects.filter(nome_perfil__in=autores)
+    perfis_dict = {perfil.nome_perfil: perfil for perfil in perfis}
+    
+    # Adiciona o perfil a cada depoimento
+    for depoimento in depoimentos:
+        depoimento.perfil = perfis_dict.get(depoimento.autor_postagem, None)
+    
+    return render(request, 'social/about.html', {
+        'depoimentos': depoimentos,
+        'perfis': perfis_dict
+    })
 
 def new_avalia(request):
     avas = Avalia.objects.all()
