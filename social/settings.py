@@ -129,8 +129,12 @@ LOGOUT_REQUEST_METHOD = 'POST'
 
 LANGUAGE_CODE = 'pt-br'
 
+# Configurações de mídia
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Garante que a pasta de mídia exista
+os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 # Configurações de segurança para produção
 if not DEBUG:
@@ -144,6 +148,9 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = 'DENY'
+    
+    # Configuração para servir arquivos estáticos em produção
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
     LOGGING = {
         'version': 1,
