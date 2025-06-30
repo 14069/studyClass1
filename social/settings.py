@@ -68,19 +68,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Configurações do Cloudinary
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-
-# Configuração do Cloudinary
-cloudinary.config(
-    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', 'dczduojq9'),
-    api_key=os.getenv('CLOUDINARY_API_KEY', '995412914267899'),
-    api_secret=os.getenv('CLOUDINARY_API_SECRET', '2L3uu2-23bTpnPc1wshFeUJjzwo'),
-    secure=True
-)
-
 # Configuração do Django Cloudinary Storage
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', 'dczduojq9'),
