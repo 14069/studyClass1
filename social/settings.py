@@ -10,22 +10,14 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Chave secreta (sempre tire do código no repo)
-SECRET_KEY = os.getenv('SECRET_KEY', 'xx8xnfk0-7!40=^osbwtl9@bgb1d*ty7f(aq_*-3&zwgvys0)p')
+SECRET_KEY = 'a88ajaeWzDwtH6-4cB4W7OypHAFl69nqXAgAlSBggK9ROZC1FLBHGcljPV1_JENgc91sC_W-YnOBgUO1fgxKIQ'
 
 # DEBUG (converte string para bool)
-DEBUG = os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes']
+DEBUG=False
 
 # Hosts permitidos (limpa espaços e entradas vazias)
-ALLOWED_HOSTS = list(set([
-    *[host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()],
-    'studyclass.up.railway.app'
-]))
-
-# Origens confiáveis para CSRF
-CSRF_TRUSTED_ORIGINS = list(set([
-    *[origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()],
-    'https://studyclass.up.railway.app'
-]))
+ALLOWED_HOSTS=['studyclass.up.railway.app']
+CSRF_TRUSTED_ORIGINS=['https://studyclass.up.railway.app']
 
 # Diretório dos templates
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
@@ -44,19 +36,27 @@ else:
     # Configuração local de desenvolvimento
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'socialdb'),
-            'USER': os.getenv('DB_USER', 'postgres'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
 
-# Configurações estáticas
+
+# Configurações estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'socialapp', 'static')]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Configuração para servir arquivos de mídia em desenvolvimento
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuração do WhiteNoise
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_ALLOW_ALL_ORIGINS = True
+
 
 # Demais configurações (INSTALLED_APPS, MIDDLEWARE, TEMPLATES, LOGGING etc) ...
 LOGGING = {

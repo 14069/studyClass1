@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
 
 import os
 from django.core.wsgi import get_wsgi_application
+from whitenoise import WhiteNoise
+from pathlib import Path
 
 # Configura as variáveis de ambiente antes de importar o Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'social.settings')
@@ -16,19 +18,15 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'social.settings')
 # Inicializa a aplicação WSGI
 application = get_wsgi_application()
 
-# Aplica o middleware do WhiteNoise para servir arquivos estáticos
-from whitenoise import WhiteNoise
-from pathlib import Path
-
 # Obtém o diretório base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Configura o WhiteNoise para servir arquivos estáticos
-application = WhiteNoise(
-    application,
-    root=os.path.join(BASE_DIR, 'staticfiles'),
-    prefix='static/',
-)
+application = WhiteNoise(application)
 
-# Adiciona diretórios adicionais para o WhiteNoise, se necessário
-application.add_files(os.path.join(BASE_DIR, 'static'), prefix='static/')
+# Adiciona o diretório de arquivos estáticos
+application.add_files(os.path.join(BASE_DIR, 'staticfiles'), prefix='static/')
+
+# Adiciona o diretório de mídia (apenas para desenvolvimento)
+if os.getenv('ENVIRONMENT') == 'development':
+    application.add_files(os.path.join(BASE_DIR, 'media'), prefix='media/')
