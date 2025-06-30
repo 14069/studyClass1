@@ -1,9 +1,9 @@
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm, PasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 from socialapp.models import Perfil
+from cloudinary.models import CloudinaryField
 
 class UsuarioForm(UserCreationForm):
     FIRST_NAME_CHOICES = [
@@ -12,7 +12,7 @@ class UsuarioForm(UserCreationForm):
     ]
     
     foto_perfil = forms.ImageField(
-        label='Foto de Perfil',
+        label='Foto do Perfil',
         required=False,
         help_text='Faça upload de uma foto para o seu perfil (opcional)'
     )

@@ -49,7 +49,7 @@ urlpatterns = [
     path('', include('usuario.urls')),
 ]
 
-# Servir arquivos estáticos em desenvolvimento
+# Servir arquivos estáticos e mídia em desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    # Em produção, o servidor web deve servir os arquivos estáticos diretamente
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

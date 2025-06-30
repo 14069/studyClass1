@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from cloudinary.models import CloudinaryField
 
 
 # Avaliação das postagens
@@ -39,9 +40,7 @@ class Postagem(models.Model):
     data_postagem = models.DateTimeField(auto_now_add=True)
     titulo_postagem = models.CharField(max_length=200)
     conteudo_postagem = models.TextField()
-    imagem_postagem = models.ImageField(
-        upload_to=post_image_path, blank=True, null=True, verbose_name='Imagem da Postagem'
-    )
+    imagem_postagem = CloudinaryField('Imagem da Postagem', blank=True, null=True)
 
     def __str__(self):
         return self.titulo_postagem
@@ -55,7 +54,7 @@ class Perfil(models.Model):
     data_nascimento = models.DateField(null=True, blank=True, default=timezone.now)
     matricula_perfil = models.CharField(max_length=255, unique=True, null=True, blank=True)
     numero_telefone = models.CharField('Telefone', max_length=20, blank=True, null=True)
-    foto_perfil = models.ImageField(upload_to='perfis/', blank=True, null=True)
+    foto_perfil = CloudinaryField('Foto do Perfil', blank=True, null=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 

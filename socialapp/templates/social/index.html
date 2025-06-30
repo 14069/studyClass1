@@ -25,7 +25,7 @@
                                 {% with autor_encontrado=False %}
                                     {% for perfil in perfis %}
                                         {% if perfil.user and perfil.user.username == postagem.autor_postagem %}
-                                            {% if perfil.foto_perfil %}
+                                            {% if perfil.foto_perfil.url %}
                                                 <div class="position-relative me-2">
                                                     <img src="{{ perfil.foto_perfil.url }}" 
                                                         class="rounded-circle" 
