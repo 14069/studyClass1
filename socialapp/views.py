@@ -290,11 +290,10 @@ def deleta_post(request, id):
                 logger.info(f"Iniciando exclusão da postagem {post.id_postagem}")
                 post_id = post.id_postagem
                 
-                # Excluir comentários, likes, ratings e perfis de post
+                # Excluir comentários, likes, avaliações e perfis de post
                 Comment.objects.filter(postagem=post).delete()
                 Like.objects.filter(postagem=post).delete()
-                with connection.cursor() as cursor:
-                    cursor.execute("DELETE FROM socialapp_rating WHERE postagem_id = %s", [post_id])
+                Avalia.objects.filter(postagem=post).delete()
                 Perfil_post.objects.filter(id_postagem=post).delete()
                 
                 # Excluir a postagem
