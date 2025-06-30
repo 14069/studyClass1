@@ -3,11 +3,13 @@ import os
 import dj_database_url
 from dotenv import load_dotenv
 
-# Carrega as variáveis do arquivo .env logo no início
-load_dotenv()
+
+
 
 # Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(dotenv_path=Path(BASE_DIR) / '.env')
 
 # DEBUG (converte string para bool)
 DEBUG=False
