@@ -30,17 +30,28 @@ CSRF_TRUSTED_ORIGINS = list(set([
 # Diretório dos templates
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
-# Configuração do banco, usando DATABASE_URL do .env ou fallback SQLite local
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+# Configuração do banco de dados
+# Se DATABASE_URL estiver definida (como no Railway), use-a
+if os.getenv('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Configuração local de desenvolvimento
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'socialdb'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Configurações estáticas
 STATIC_URL = '/static/'
