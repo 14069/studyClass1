@@ -25,6 +25,9 @@
     <!-- CSS do Tema -->
     <link href="{% static 'css/styles.css' %}" rel="stylesheet" />
     <link href="{% static 'css/base.css' %}" rel="stylesheet" />
+    
+    <!-- Adicionando fallback para ícones caso o CDN não carregue -->
+    <link href="{% static 'bootstrap-icons/font/bootstrap-icons.css' %}" rel="stylesheet">
 
     <!-- Font Awesome -->
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous" defer></script>
@@ -102,7 +105,7 @@
     </nav>
 
     <!-- Page Header -->
-    <header class="masthead" style="background-image: url({% static 'assets/img/home-bg.jpg' %})">
+    <header class="masthead" style="background-image: url('{% static 'assets/img/home-bg.jpg' %}') ">
         <div class="container position-relative px-4 px-lg-5" data-aos="fade-up" data-aos-duration="1200">
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">

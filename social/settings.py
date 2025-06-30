@@ -112,6 +112,12 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'socialapp', 'static'),
 ]
 
+# Garante que o Django encontre os arquivos estáticos
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
