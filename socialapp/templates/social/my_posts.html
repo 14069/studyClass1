@@ -33,29 +33,13 @@
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="d-flex align-items-center">
-                                <!-- Foto do autor -->
-                                {% with autor_encontrado=False %}
-                                    {% for perfil in perfis %}
-                                        {% if perfil.user and perfil.user.username == postagem.autor_postagem %}
-                                            {% if perfil.foto_perfil.url %}
-                                                <div class="position-relative me-2">
-                                                    <img src="{{ perfil.foto_perfil.url }}" 
-                                                        class="rounded-circle" 
-                                                        alt="{{ perfil.nome_perfil }}"
-                                                        style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #4361ee;">
-                                                </div>
-                                            {% else %}
-                                                <div class="position-relative me-2">
-                                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
-                                                        style="width: 40px; height: 40px; background-color: #4361ee;">
-                                                        <i class="bi bi-person-fill text-white"></i>
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                            {% with autor_encontrado=True %}{% endwith %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endwith %}
+                                <!-- Ícone do autor -->
+                                <div class="position-relative me-2">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
+                                        style="width: 40px; height: 40px; background-color: #4361ee;">
+                                        <i class="bi bi-person-fill text-white"></i>
+                                    </div>
+                                </div>
                                 
                                 <!-- Nome do autor e data -->
                                 <div>
@@ -106,15 +90,6 @@
                                 {% with user_rating=user_ratings|get_item:postagem.id_postagem %}
                                     {% include 'social/includes/star_rating.html' with post=postagem user_rating=user_rating %}
                                 {% endwith %}
-                            {% endif %}
-                            
-                            {% if postagem.imagem_postagem %}
-                            <div class="post-image-container mb-3">
-                                <img src="{{ postagem.imagem_postagem.url }}" 
-                                     alt="Imagem da postagem" 
-                                     class="img-fluid rounded" 
-                                     style="max-height: 500px; width: 100%; object-fit: contain;">
-                            </div>
                             {% endif %}
                         </div>
 

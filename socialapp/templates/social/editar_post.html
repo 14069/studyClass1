@@ -3,29 +3,6 @@
 
 {% block extra_css %}
 <style>
-    /* Estilos para as imagens das postagens */
-    .post-image-container {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-    }
-    
-    .post-image-container img {
-        max-height: 500px;
-        width: auto;
-        max-width: 100%;
-        border-radius: 4px;
-        transition: transform 0.3s ease;
-    }
-    
-    .post-image-container img:hover {
-        transform: scale(1.02);
-    }
-    
     /* Estilos específicos para a página de edição de postagem */
     .post-form-container {
         background-color: #fff;
@@ -121,7 +98,7 @@
             {% else %}
             <div class="post-form-container" data-aos="fade-up">
                 <h2 class="text-center mb-4">Editar Postagem</h2>
-                <form method="post" enctype="multipart/form-data">
+                <form method="post">
                     {% csrf_token %}
                     
                     <div class="mb-3">
@@ -134,39 +111,7 @@
                         {{ form.conteudo_postagem|add_class:"form-control"|attr:"rows:5" }}
                     </div>
                     
-                    <div class="mb-4">
-                        <label for="id_imagem_postagem" class="form-label">Imagem da Postagem</label>
-                        
-                        {% if post.imagem_postagem %}
-                        <div class="mb-3">
-                            <p class="text-muted mb-2">Imagem atual:</p>
-                            <div class="post-image-container mb-3">
-                                <img src="{{ post.imagem_postagem.url }}" 
-                                     alt="Imagem atual da postagem" 
-                                     class="img-fluid rounded" 
-                                     style="max-height: 300px; width: 100%; object-fit: contain;">
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="remove_imagem" name="remove_imagem">
-                                <label class="form-check-label" for="remove_imagem">
-                                    Remover imagem atual
-                                </label>
-                            </div>
-                            <p class="text-muted mb-2">Ou faça upload de uma nova imagem:</p>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="input-group">
-                            {{ form.imagem_postagem|add_class:"form-control" }}
-                        </div>
-                        <div class="form-text">
-                            Formatos suportados: JPG, JPEG, PNG. Tamanho máximo: 5MB.
-                            {% if not post.imagem_postagem %}
-                            A imagem é opcional.
-                            {% endif %}
-                        </div>
-                    </div>
-                    
+
                     <div class="post-actions">
                         <a href="{% url 'my_posts' %}" class="btn btn-outline-secondary btn-cancel">
                             <i class="bi bi-x-lg me-2"></i>Cancelar
@@ -298,45 +243,6 @@
                     
                     form.classList.add('was-validated');
                 }, false);
-            });
-            
-            // Adiciona funcionalidade para abrir a imagem em um modal ao clicar nela
-            document.querySelectorAll('.post-image-container img').forEach(img => {
-                img.style.cursor = 'zoom-in';
-                img.addEventListener('click', function() {
-                    const modal = `
-                        <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-lg">
-                                <div class="modal-content bg-transparent border-0">
-                                    <div class="modal-header border-0">
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                    </div>
-                                    <div class="modal-body text-center p-0">
-                                        <img src="${this.src}" class="img-fluid" alt="Imagem ampliada">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Remove o modal existente, se houver
-                    const existingModal = document.getElementById('imageModal');
-                    if (existingModal) {
-                        existingModal.remove();
-                    }
-                    
-                    // Adiciona o novo modal ao body
-                    document.body.insertAdjacentHTML('beforeend', modal);
-                    
-                    // Inicializa o modal
-                    const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
-                    imageModal.show();
-                    
-                    // Remove o modal do DOM quando fechado
-                    document.getElementById('imageModal').addEventListener('hidden.bs.modal', function () {
-                        this.remove();
-                    });
-                });
             });
         });
     </script>

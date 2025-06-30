@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from socialapp.forms import AvaliaForms, PostagemForms, PerfilForms, TelefoneForms, PerfilPostForms, CommentForm
-from socialapp.models import Avalia, Postagem, Perfil, Telefone, Perfil_post, Like, Comment
-from django.http import JsonResponse, Http404, HttpResponse
+from socialapp.forms import AvaliaForms, PostagemForms, CommentForm
+from socialapp.models import Avalia, Postagem, Perfil, Perfil_post, Like, Comment
+from django.http import JsonResponse, Http404
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -163,7 +163,7 @@ def deleta_avalia(request,id):
 @login_required
 def new_post(request):
     if request.method == 'POST':
-        form = PostagemForms(request.POST, request.FILES)
+        form = PostagemForms(request.POST)
         if form.is_valid():
             try:
                 # Cria a postagem sem salvar no banco ainda
@@ -172,7 +172,7 @@ def new_post(request):
                 postagem.autor_postagem = request.user.username
                 # Define a data atual
                 postagem.data_postagem = timezone.now()
-                # Salva a postagem (isso também processa a imagem)
+                # Salva a postagem
                 postagem.save()
                 
                 messages.success(request, 'Postagem criada com sucesso!')
@@ -213,20 +213,6 @@ def editar_post(request, id):
         form = PostagemForms(request.POST, request.FILES, instance=post)
         if form.is_valid():
             try:
-                # Verifica se o usuário marcou para remover a imagem
-                if 'remove_imagem' in request.POST and request.POST['remove_imagem'] == 'on':
-                    # Remove o arquivo de imagem do sistema de arquivos
-                    if post.imagem_postagem:
-                        post.imagem_postagem.delete(save=False)
-                    # Remove a referência da imagem no banco de dados
-                    post.imagem_postagem = None
-                
-                # Verifica se foi enviada uma nova imagem
-                if 'imagem_postagem' in request.FILES:
-                    # Remove a imagem antiga se existir
-                    if post.imagem_postagem:
-                        post.imagem_postagem.delete(save=False)
-                
                 # Salva as alterações
                 post.save()
                 
@@ -289,15 +275,6 @@ def deleta_post(request, id):
                 
                 # 3. Forçar a limpeza do cache de relacionamentos
                 post = Postagem.objects.get(pk=post_id)
-                
-                # 4. Remover a imagem associada à postagem, se existir
-                if post.imagem_postagem:
-                    try:
-                        # Remove o arquivo de imagem do sistema de arquivos
-                        post.imagem_postagem.delete(save=False)
-                        logger.info(f"Imagem da postagem {post_id} removida com sucesso.")
-                    except Exception as e:
-                        logger.error(f"Erro ao remover a imagem da postagem {post_id}: {str(e)}", exc_info=True)
                 
                 # 5. Excluir a postagem
                 logger.info("Excluindo a postagem...")

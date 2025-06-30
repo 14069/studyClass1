@@ -140,61 +140,8 @@
         });
     });
 
-    // Função para visualizar a imagem selecionada
-    function previewImage(input) {
-        const preview = document.getElementById('preview');
-        const previewContainer = document.getElementById('image-preview');
-        const file = input.files[0];
-        
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                previewContainer.classList.remove('d-none');
-            }
-            
-            reader.readAsDataURL(file);
-        } else {
-            preview.src = '#';
-            previewContainer.classList.add('d-none');
-        }
-    }
-    
-    // Função para remover a imagem selecionada
-    function removeImage() {
-        const input = document.getElementById('imagem-postagem');
-        const preview = document.getElementById('preview');
-        const previewContainer = document.getElementById('image-preview');
-        
-        input.value = '';
-        preview.src = '#';
-        previewContainer.classList.add('d-none');
-    }
-    
     // Validação do formulário
     document.getElementById('post-form').addEventListener('submit', function(e) {
-        const fileInput = document.getElementById('imagem-postagem');
-        const file = fileInput.files[0];
-        
-        if (file) {
-            // Verifica o tamanho do arquivo (máximo 5MB)
-            const maxSize = 5 * 1024 * 1024; // 5MB em bytes
-            if (file.size > maxSize) {
-                e.preventDefault();
-                alert('O arquivo é muito grande. O tamanho máximo permitido é 5MB.');
-                return false;
-            }
-            
-            // Verifica o tipo do arquivo
-            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-            if (!validTypes.includes(file.type)) {
-                e.preventDefault();
-                alert('Formato de arquivo não suportado. Use apenas imagens JPG, JPEG ou PNG.');
-                return false;
-            }
-        }
-        
         return true;
     });
 </script>
@@ -206,7 +153,7 @@
         <div class="col-lg-10 col-xl-8">
             <div class="post-form-container" data-aos="fade-up">
                 <h2 class="text-center mb-4">Nova Postagem</h2>
-                <form method="post" enctype="multipart/form-data" id="post-form">
+                <form method="post" id="post-form">
                     {% csrf_token %}
                     
                     <!-- Campos ocultos para autor e data -->
@@ -231,21 +178,7 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Upload de Imagem -->
-                    <div class="mb-4">
-                        {{ form.imagem_postagem.label_tag }}
-                        {{ form.imagem_postagem|add_class:"form-control" }}
-                        {% if form.imagem_postagem.help_text %}
-                            <small class="form-text text-muted">{{ form.imagem_postagem.help_text }}</small>
-                        {% endif %}
-                        <div id="image-preview" class="mt-3 text-center d-none">
-                            <img id="preview" src="#" alt="Prévia da imagem" class="img-fluid rounded" style="max-height: 300px;">
-                            <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeImage()">
-                                <i class="bi bi-trash"></i> Remover imagem
-                            </button>
-                        </div>
-                    </div>
-                    
+
                     <!-- Botões de Ação -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{% url 'index' %}" class="btn btn-outline-secondary me-md-2">

@@ -21,29 +21,13 @@
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="d-flex align-items-center">
-                                <!-- Foto do autor -->
-                                {% with autor_encontrado=False %}
-                                    {% for perfil in perfis %}
-                                        {% if perfil.user and perfil.user.username == postagem.autor_postagem %}
-                                            {% if perfil.foto_perfil.url %}
-                                                <div class="position-relative me-2">
-                                                    <img src="{{ perfil.foto_perfil.url }}" 
-                                                        class="rounded-circle" 
-                                                        alt="{{ perfil.nome_perfil }}"
-                                                        style="width: 36px; height: 36px; object-fit: cover; border: 2px solid #4361ee;">
-                                                </div>
-                                            {% else %}
-                                                <div class="position-relative me-2">
-                                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
-                                                        style="width: 36px; height: 36px; background-color: #4361ee;">
-                                                        <i class="bi bi-person-fill text-white"></i>
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                            {% with autor_encontrado=True %}{% endwith %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endwith %}
+                                <!-- Ícone do autor -->
+                                <div class="position-relative me-2">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
+                                        style="width: 36px; height: 36px; background-color: #4361ee;">
+                                        <i class="bi bi-person-fill text-white"></i>
+                                    </div>
+                                </div>
                                 
                                 <!-- Nome do autor e data -->
                                 <div>
@@ -106,15 +90,7 @@
                             {% endwith %}
                         {% endif %}
                         
-                        <!-- Imagem do post -->
-                        {% if postagem.imagem_postagem %}
-                        <div class="post-image-container mb-3">
-                            <img src="{{ postagem.imagem_postagem.url }}" 
-                                 alt="Imagem da postagem" 
-                                 class="img-fluid rounded" 
-                                 style="max-height: 500px; width: 100%; object-fit: contain;">
-                        </div>
-                        {% endif %}
+
 
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-outline-primary btn-sm like-button" data-post-id="{{ postagem.id_postagem }}">
@@ -327,48 +303,6 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 console.log('CSRF Token:', csrftoken ? 'Encontrado' : 'Não encontrado');
-
-// Adiciona funcionalidade para abrir a imagem em um modal ao clicar nela
-document.addEventListener('DOMContentLoaded', function() {
-    // Adiciona evento de clique nas imagens das postagens
-    document.querySelectorAll('.post-image-container img').forEach(img => {
-        img.style.cursor = 'zoom-in';
-        img.addEventListener('click', function() {
-            const modal = `
-                <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content bg-transparent border-0">
-                            <div class="modal-header border-0">
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                            </div>
-                            <div class="modal-body text-center p-0">
-                                <img src="${this.src}" class="img-fluid" alt="Imagem ampliada">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Remove o modal existente, se houver
-            const existingModal = document.getElementById('imageModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            // Adiciona o novo modal ao body
-            document.body.insertAdjacentHTML('beforeend', modal);
-            
-            // Inicializa o modal
-            const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
-            imageModal.show();
-            
-            // Remove o modal do DOM quando fechado
-            document.getElementById('imageModal').addEventListener('hidden.bs.modal', function () {
-                this.remove();
-            });
-        });
-    });
-});
 
 // Variáveis globais
 let isLoadingComments = false;
