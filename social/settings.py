@@ -4,6 +4,7 @@ import dj_database_url
 from dotenv import load_dotenv
 
 
+
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
@@ -94,12 +95,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'social.wsgi.application'
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR}/db.sqlite3'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
