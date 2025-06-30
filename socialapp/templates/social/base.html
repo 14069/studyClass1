@@ -63,21 +63,12 @@
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarConta" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% if user_profile and user_profile.foto_perfil.url %}
-                                    <div class="position-relative">
-                                        <img src="{{ user_profile.foto_perfil.url }}" 
-                                             class="rounded-circle me-2" 
-                                             alt="{{ user.username }}"
-                                             style="width: 36px; height: 36px; object-fit: cover; border: 2px solid #4361ee;">
+                                <div class="position-relative">
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 36px; height: 36px; background-color: #4361ee;">
+                                        <i class="bi bi-person-fill text-white"></i>
                                     </div>
-                                {% else %}
-                                    <div class="position-relative">
-                                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" 
-                                             style="width: 36px; height: 36px; background-color: #4361ee;">
-                                            <i class="bi bi-person-fill text-white"></i>
-                                        </div>
-                                    </div>
-                                {% endif %}
+                                </div>
                                 <span class="ms-1">{{ user.username|truncatechars:15 }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarConta">

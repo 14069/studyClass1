@@ -10,7 +10,7 @@ User = get_user_model()
 
 def new_usuario(request):
     if request.method == 'POST':
-        form = UsuarioForm(request.POST, request.FILES)
+        form = UsuarioForm(request.POST)
         if form.is_valid():
             user = form.save()
             return redirect('login')
@@ -109,11 +109,6 @@ def editar_perfil(request):
             perfil.nome_perfil = form.cleaned_data.get('last_name', user.username)
             perfil.numero_telefone = form.cleaned_data.get('numero_telefone')
             perfil.data_nascimento = form.cleaned_data.get('data_nascimento')
-            
-            # Atualiza a foto de perfil se uma nova foi fornecida
-            if 'foto_perfil' in request.FILES:
-                perfil.foto_perfil = request.FILES['foto_perfil']
-            
             perfil.save()
             
             messages.success(request, 'Perfil atualizado com sucesso!')
