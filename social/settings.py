@@ -22,14 +22,23 @@ CSRF_TRUSTED_ORIGINS=['https://studyclass.up.railway.app']
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 # Configuração do banco de dados
-# Se DATABASE_URL estiver definida (como no Railway), use-a
-DATABASES = {
+db_from_env = os.getenv('DATABASE_URL')
+if db_from_env:
+    DATABASES = {
         'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+            default=db_from_env,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Configuração local de desenvolvimento com SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 
 
