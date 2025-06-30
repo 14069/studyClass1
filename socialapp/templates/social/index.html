@@ -62,9 +62,12 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form action="{% url 'deleta_post' postagem.id_postagem %}" method="POST" class="d-inline">
+                                        <form action="{% url 'deleta_post' postagem.id_postagem %}" 
+                                              method="POST" 
+                                              class="delete-post-form d-inline"
+                                              data-post-id="{{ postagem.id_postagem }}">
                                             {% csrf_token %}
-                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Tem certeza que deseja excluir esta postagem?');">
+                                            <button type="submit" class="dropdown-item text-danger">
                                                 <i class="bi bi-trash me-2"></i> Excluir
                                                 {% if request.user.is_superuser and postagem.autor_postagem != request.user.username %}
                                                 <span class="badge bg-warning text-dark ms-2">Admin</span>
@@ -492,6 +495,47 @@ function getCookie(name) {
 document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
     
+    // Adiciona listener para os formulários de exclusão de post
+    document.querySelectorAll('.delete-post-form').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!confirm('Tem certeza que deseja excluir esta postagem?')) {
+                return;
+            }
+
+            const form = this;
+            const postCard = form.closest('.card');
+            const postId = form.dataset.postId;
+            
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remove o card da postagem com animação
+                    postCard.style.opacity = '0';
+                    setTimeout(() => {
+                        postCard.remove();
+                        showAlert('Postagem excluída com sucesso!', 'success');
+                    }, 300);
+                } else {
+                    showAlert(data.error || 'Erro ao excluir a postagem', 'danger');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao conectar ao servidor', 'danger');
+            }
+        });
+    });
+    
     // Inicializar tooltips do Bootstrap
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -499,13 +543,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Função para atualizar a contagem de comentários
-    function updateCommentCount(postId, increment) {
-        const commentCount = document.getElementById(`comment-count-${postId}`);
-        if (commentCount) {
-            const newCount = parseInt(commentCount.textContent) + (increment ? 1 : -1);
-            commentCount.textContent = newCount;
-            const commentText = commentCount.nextElementSibling;
-            commentText.textContent = newCount === 1 ? ' comentário' : ' comentários';
+    function updateCommentCount(postId, change) {
+        const countElement = document.getElementById(`comment-count-${postId}`);
+        if (countElement) {
+            const currentCount = parseInt(countElement.textContent) || 0;
+            const newCount = currentCount + change;
+            countElement.textContent = newCount;
+            
+            // Atualiza o texto para singular/plural
+            const textElement = document.getElementById(`comment-text-${postId}`);
+            if (textElement) {
+                textElement.textContent = newCount === 1 ? 'comentário' : 'comentários';
+            }
         }
     }
     
@@ -611,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="btn btn-link text-danger p-0 ms-2 delete-comment" 
                             data-comment-id="${comment.id}"
                             data-bs-toggle="tooltip" 
-                            title="Excluir comentário">
+                            title="Excluir meu comentário">
                         <i class="bi bi-trash" style="font-size: 0.8rem;"></i>
                     </button>
                     ` : ''}
@@ -1106,90 +1155,6 @@ function loadRatings(postId, retryCount = 0) {
         });
 }
 
-// Função para carregar as avaliações de um post
-function loadRatings(postId, retryCount = 0) {
-    console.log(`Carregando avaliações para o post ${postId}...`);
-    
-    const container = document.querySelector(`.star-rating[data-post-id="${postId}"]`);
-    if (!container) {
-        console.error(`Container não encontrado para o post ${postId}`);
-        return;
-    }
-    
-    // Mostra indicador de carregamento
-    container.classList.add('rating-loading');
-    
-    // Armazena o texto original para restaurar em caso de erro
-    const ratingText = container.querySelector('.rating-text');
-    const originalText = ratingText ? ratingText.textContent : '';
-    
-    // Atualiza o texto para mostrar carregamento
-    if (ratingText) {
-        ratingText.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Carregando...';
-    }
-    
-    // Tenta carregar as avaliações
-    fetch(`/post/${postId}/ratings/`)
-        .then(async response => {
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const errorMessage = errorData.error || `Erro HTTP: ${response.status}`;
-                throw new Error(errorMessage);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(`Dados recebidos para o post ${postId}:`, data);
-            
-            if (data.success) {
-                // Atualiza a interface do usuário com as avaliações
-                updateRatingUI(postId, data.avg_rating, data.rating_count, data.user_rating);
-                
-                // Atualiza a avaliação atual no container
-                container.setAttribute('data-current-rating', data.user_rating || '0');
-                console.log(`Avaliação atual do usuário para o post ${postId}: ${data.user_rating || 'Nenhuma'}`);
-                
-                // Adiciona classe de atualização para feedback visual
-                container.classList.add('rating-updated');
-                setTimeout(() => {
-                    container.classList.remove('rating-updated');
-                }, 1000);
-            } else {
-                const errorMsg = data.error || 'Erro desconhecido ao carregar avaliações';
-                console.error('Erro ao carregar avaliações:', errorMsg);
-                throw new Error(errorMsg);
-            }
-        })
-        .catch(error => {
-            console.error(`Erro ao carregar avaliações para o post ${postId}:`, error);
-            
-            // Tenta novamente se for um erro de rede e não temos muitas tentativas
-            if (error.name === 'TypeError' && retryCount < 3) {
-                console.log(`Tentativa ${retryCount + 1} de 3 para carregar avaliações...`);
-                setTimeout(() => loadRatings(postId, retryCount + 1), 1000 * (retryCount + 1));
-                return;
-            }
-            
-            // Mostra mensagem de erro para o usuário
-            if (ratingText) {
-                ratingText.textContent = 'Erro ao carregar avaliações';
-                ratingText.classList.add('text-danger');
-                
-                // Restaura o texto original após alguns segundos
-                setTimeout(() => {
-                    if (ratingText) {
-                        ratingText.textContent = originalText;
-                        ratingText.classList.remove('text-danger');
-                    }
-                }, 3000);
-            }
-        })
-        .finally(() => {
-            // Remove o indicador de carregamento
-            container.classList.remove('rating-loading');
-        });
-}
-
 // Função para carregar as avaliações dos posts de forma otimizada
 function initializeRatings() {
     console.log('Inicializando avaliações...');
@@ -1394,11 +1359,11 @@ function showAlert(message, type = 'info') {
     
     // Remove o alerta após 5 segundos
     setTimeout(() => {
-        const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
-        if (alert) alert.close();
-    }, 5000);
-    
-    // Remove o elemento do DOM após a animação de fechamento
+        alertDiv.classList.remove('show');
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 150);
+    }, 5000);   // Remove o elemento do DOM após a animação de fechamento
     alertDiv.addEventListener('closed.bs.alert', () => {
         alertDiv.remove();
     });

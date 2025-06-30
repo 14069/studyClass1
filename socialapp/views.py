@@ -271,7 +271,6 @@ logger = logging.getLogger(__name__)
 def deleta_post(request, id):
     try:
         with transaction.atomic():
-            # Primeiro, obtemos a postagem
             post = get_object_or_404(Postagem, pk=id)
             
             # Verifica se o usuário é o autor OU um superusuário
@@ -279,46 +278,44 @@ def deleta_post(request, id):
             is_superuser = request.user.is_superuser
             
             if not (is_author or is_superuser):
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Você não tem permissão para excluir esta postagem.'
+                    }, status=403)
                 messages.error(request, "Você não tem permissão para excluir esta postagem.")
                 return redirect('index')
 
             if request.method == "POST":
                 logger.info(f"Iniciando exclusão da postagem {post.id_postagem}")
-                
-                # 1. Primeiro, obtemos o ID da postagem
                 post_id = post.id_postagem
                 
-                # 2. Excluir todos os relacionamentos conhecidos
-                # Excluir comentários
+                # Excluir comentários, likes, ratings e perfis de post
                 Comment.objects.filter(postagem=post).delete()
-                
-                # Excluir likes
                 Like.objects.filter(postagem=post).delete()
-                
-                # Excluir ratings
                 with connection.cursor() as cursor:
                     cursor.execute("DELETE FROM socialapp_rating WHERE postagem_id = %s", [post_id])
-                
-                # Excluir perfis de post
                 Perfil_post.objects.filter(id_postagem=post).delete()
                 
-                # 3. Forçar a limpeza do cache de relacionamentos
-                post = Postagem.objects.get(pk=post_id)
-                
-                # 5. Excluir a postagem
+                # Excluir a postagem
                 logger.info("Excluindo a postagem...")
                 post.delete()
                 
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True})
+                    
                 messages.success(request, "Postagem excluída com sucesso!")
-                
-                # Redireciona para a página correta com base no parâmetro 'next' ou para a página inicial
-                next_url = request.GET.get('next', 'index')
-                return redirect(next_url)
+                return redirect('index')
             
             return redirect('index')
             
     except Exception as e:
         logger.error(f"Erro ao excluir postagem: {str(e)}", exc_info=True)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': f"Ocorreu um erro ao excluir a postagem: {str(e)}"
+            }, status=500)
         messages.error(request, f"Ocorreu um erro ao excluir a postagem: {str(e)}")
         return redirect('index')
 
