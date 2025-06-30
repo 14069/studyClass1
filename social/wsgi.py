@@ -30,22 +30,3 @@ application.add_files(os.path.join(BASE_DIR, 'staticfiles'), prefix='static/')
 # Adiciona o diretório de mídia (apenas para desenvolvimento)
 if os.getenv('ENVIRONMENT') == 'development':
     application.add_files(os.path.join(BASE_DIR, 'media'), prefix='media/')
-
-# Criação do superusuário ao subir a aplicação
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
-username = 'admin'
-email = 'admin@example.com'
-password = 'admin123'
-
-if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username=username, email=email, password=password)
-    print("✔ Superusuário criado com sucesso.")
-else:
-    print("⚠ Superusuário já existe.")
-
-
-# Depois disso, sobe a aplicação
-from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
