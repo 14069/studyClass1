@@ -14,10 +14,6 @@ typing_extensions==4.14.0
 tzdata==2025.2
 whitenoise==6.7.0
 
-# Cloudinary
-django-cloudinary-storage==0.3.0
-cloudinary==1.44.1
-
 # Dependências adicionais
 urllib3>=1.26.0,<3.0.0
 certifi>=2024.2.2

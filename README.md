@@ -1,12 +1,11 @@
 # 🧠 Study Class
 
-Projeto desenvolvido com Django, PostgreSQL e Cloudinary.
+Projeto desenvolvido com Django e PostgreSQL.
 
 ## 🚀 Tecnologias Utilizadas
 - Python 3.10+
 - Django 5.1
 - PostgreSQL
-- Cloudinary
 - Railway
 - WhiteNoise
 
@@ -33,10 +32,7 @@ Projeto desenvolvido com Django, PostgreSQL e Cloudinary.
 - ALLOWED_HOSTS
 - CSRF_TRUSTED_ORIGINS
 - DATABASE_URL
-- CLOUDINARY_CLOUD_NAME
-- CLOUDINARY_API_KEY
-- CLOUDINARY_API_SECRET
 
 ---
 
-Desenvolvido por você. 🚀
+Desenvolvido por Antonio Agacy Silva Lima Junior. 🚀
