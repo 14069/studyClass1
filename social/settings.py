@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'usuario',
     'widget_tweaks',
     'whitenoise',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -64,7 +66,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Adicionando o middleware personalizado para servir arquivos de mídia
+    'socialapp.middleware.MediaMiddleware',
 ]
+
+# Configurações do Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('dczduojq9'),
+    'API_KEY': os.getenv('995412914267899'),
+    'API_SECRET': os.getenv('2L3uu2-23bTpnPc1wshFeUJjzwo'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 ROOT_URLCONF = 'social.urls'
 
