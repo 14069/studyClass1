@@ -45,6 +45,18 @@ RUN pip install --no-cache /wheels/*
 # Copia o projeto
 COPY . .
 
+# Variáveis de ambiente
+ENV SECRET_KEY=django-insecure-ry_-s8mnz=b3a*ykg3ebic3mv_l&0a3o_0el2h2zr13ze)@4)2f8$u$jnwud
+ENV DEBUG=False
+ENV ALLOWED_HOSTS=.railway.app,studyclass.up.railway.app
+ENV CSRF_TRUSTED_ORIGINS=https://studyclass.up.railway.app
+ENV DATABASE_URL=postgres://postgres:qkdRSNeYDAnTglsLAYBxRfqlnZoYSxPF@postgres.railway.internal:5432/railway
+
+# Cria diretório para arquivos estáticos
+RUN mkdir -p /app/staticfiles
+RUN chown -R user:user /app/staticfiles
+
+
 # Coleta arquivos estáticos
 RUN python manage.py collectstatic --noinput
 
