@@ -49,15 +49,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='perfil',
-            name='foto_perfil',
-            field=models.ImageField(
-                upload_to='perfis/',
-                blank=True,
-                null=True
-            ),
-        ),
-        migrations.AlterField(
-            model_name='perfil',
             name='matricula_perfil',
             field=models.CharField(
                 max_length=255,
