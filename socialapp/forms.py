@@ -13,7 +13,7 @@ class AvaliaForms(forms.ModelForm):
 class PostagemForms(forms.ModelForm):
     class Meta:
         model = Postagem
-        fields = ['titulo_postagem', 'conteudo_postagem', 'imagem_postagem']
+        fields = ['titulo_postagem', 'conteudo_postagem']
         widgets = {
             'titulo_postagem': forms.TextInput(attrs={
                 'class': 'form-control mb-3',
@@ -26,20 +26,10 @@ class PostagemForms(forms.ModelForm):
                 'placeholder': 'O que você está pensando?',
                 'required': True
             }),
-            'imagem_postagem': forms.FileInput(attrs={
-                'class': 'form-control',
-                'accept': 'image/*',
-                'id': 'imagem-postagem',
-                'onchange': 'previewImage(this)'
-            })
         }
         labels = {
             'titulo_postagem': 'Título',
             'conteudo_postagem': 'Conteúdo',
-            'imagem_postagem': 'Imagem (opcional)'
-        }
-        help_texts = {
-            'imagem_postagem': 'Formatos suportados: JPG, JPEG, PNG. Tamanho máximo: 5MB.'
         }
 
 

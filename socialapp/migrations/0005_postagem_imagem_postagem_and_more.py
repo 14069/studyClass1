@@ -11,11 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='postagem',
-            name='imagem_postagem',
-            field=models.ImageField(blank=True, null=True, upload_to=socialapp.models.post_image_path, verbose_name='Imagem da Postagem'),
-        ),
         migrations.AlterField(
             model_name='postagem',
             name='data_postagem',

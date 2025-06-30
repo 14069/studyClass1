@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from cloudinary.models import CloudinaryField
 
 
 # Avaliação das postagens
@@ -23,16 +22,6 @@ class Avalia(models.Model):
         return f"{self.user.username} - {self.get_valor_avalia_display()}"
 
 
-# Gerador de caminho para imagens das postagens
-def post_image_path(instance, filename):
-    from django.utils.timezone import now
-    import os
-    date_path = now().strftime('posts/%Y/%m')
-    filename_base, filename_ext = os.path.splitext(filename)
-    unique_filename = f"{filename_base}_{now().strftime('%Y%m%d%H%M%S')}{filename_ext}"
-    return os.path.join(date_path, unique_filename)
-
-
 # Postagens
 class Postagem(models.Model):
     id_postagem = models.AutoField(primary_key=True)
@@ -40,7 +29,7 @@ class Postagem(models.Model):
     data_postagem = models.DateTimeField(auto_now_add=True)
     titulo_postagem = models.CharField(max_length=200)
     conteudo_postagem = models.TextField()
-    imagem_postagem = CloudinaryField('Imagem da Postagem', blank=True, null=True)
+
 
     def __str__(self):
         return self.titulo_postagem
@@ -54,7 +43,6 @@ class Perfil(models.Model):
     data_nascimento = models.DateField(null=True, blank=True, default=timezone.now)
     matricula_perfil = models.CharField(max_length=255, unique=True, null=True, blank=True)
     numero_telefone = models.CharField('Telefone', max_length=20, blank=True, null=True)
-    foto_perfil = CloudinaryField('Foto do Perfil', blank=True, null=True)
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 
@@ -66,10 +54,6 @@ class Perfil(models.Model):
     def __str__(self):
         return self.nome_perfil
 
-    def foto_url(self):
-        if self.foto_perfil and hasattr(self.foto_perfil, 'url'):
-            return self.foto_perfil.url
-        return None
 
 
 # Telefone vinculado ao perfil

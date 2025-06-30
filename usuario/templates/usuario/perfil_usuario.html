@@ -15,19 +15,10 @@
             <div class="card shadow-sm border-0 rounded-4 h-100">
                 <div class="card-body text-center p-4">
                     <div class="mb-4">
-                        {% if user_profile and user_profile.foto_perfil %}
-                            <img src="{{ user_profile.foto_perfil.url }}" 
-                                 alt="{{ user.get_full_name }}" 
-                                 class="rounded-circle shadow" 
-                                 width="150" 
-                                 height="150"
-                                 style="object-fit: cover;">
-                        {% else %}
-                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center mx-auto" 
-                                 style="width: 150px; height: 150px; background-color: #4361ee;">
-                                <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
-                            </div>
-                        {% endif %}
+                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center mx-auto" 
+                             style="width: 150px; height: 150px; background-color: #4361ee;">
+                            <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
+                        </div>
                     </div>
                     
                     <h2 class="h4 fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h2>
@@ -103,30 +94,11 @@
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="d-flex align-items-center">
-                                    <!-- Foto do autor -->
-                                    {% with autor_encontrado=False %}
-                                        {% for perfil in perfis %}
-                                            {% if perfil.user and perfil.user.username == post.autor_postagem %}
-                                                {% if perfil.foto_perfil %}
-                                                    <div class="position-relative me-2">
-                                                        <img src="{{ perfil.foto_perfil.url }}" 
-                                                            class="rounded-circle" 
-                                                            alt="{{ perfil.nome_perfil }}"
-                                                            style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #4361ee;">
-                                                    </div>
-                                                {% else %}
-                                                    <div class="position-relative me-2">
-                                                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center" 
-                                                            style="width: 40px; height: 40px; background-color: #4361ee;">
-                                                            <i class="bi bi-person-fill text-white"></i>
-                                                        </div>
-                                                    </div>
-                                                {% endif %}
-                                                {% with autor_encontrado=True %}{% endwith %}
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endwith %}
-                                    
+                                    <!-- Ícone do autor -->
+                                    <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person-fill text-white"></i>
+                                    </div>
                                     <!-- Nome do autor e data -->
                                     <div>
                                         <h6 class="mb-0 fw-bold">{{ post.autor_postagem }}</h6>

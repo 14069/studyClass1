@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django import forms
 from django.utils import timezone
 from socialapp.models import Perfil
-from cloudinary.models import CloudinaryField
 
 class UsuarioForm(UserCreationForm):
     FIRST_NAME_CHOICES = [
@@ -11,12 +10,7 @@ class UsuarioForm(UserCreationForm):
         ('Discente', 'Discente')
     ]
     
-    foto_perfil = forms.ImageField(
-        label='Foto do Perfil',
-        required=False,
-        help_text='Faça upload de uma foto para o seu perfil (opcional)'
-    )
-    
+
     # Adicionando campo de data de nascimento
     data_nascimento = forms.DateField(
         label='Data de Nascimento',
@@ -27,7 +21,7 @@ class UsuarioForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'last_name', 'first_name', 'data_nascimento', 'numero_telefone', 'foto_perfil']
+        fields = ['username', 'email', 'last_name', 'first_name', 'data_nascimento', 'numero_telefone']
         
     username = forms.CharField(label='Matrícula:')
     email = forms.EmailField(label='E-mail:')
@@ -55,7 +49,6 @@ class UsuarioForm(UserCreationForm):
         # Obtém os dados do formulário
         data_nascimento = self.cleaned_data.get('data_nascimento')
         numero_telefone = self.cleaned_data.get('numero_telefone')
-        foto_perfil = self.cleaned_data.get('foto_perfil')
         
         # Garante que a data de nascimento não seja nula
         if not data_nascimento:
@@ -66,16 +59,13 @@ class UsuarioForm(UserCreationForm):
             perfil = Perfil.objects.get(matricula_perfil=user.username)
             perfil.nome_perfil = user.last_name or user.username
             perfil.data_nascimento = data_nascimento
-            if foto_perfil:  # Sobrepor a foto apenas se uma nova foi fornecida
-                perfil.foto_perfil = foto_perfil
             perfil.save()
         except Perfil.DoesNotExist:
             perfil = Perfil.objects.create(
                 matricula_perfil=user.username,
                 nome_perfil=user.last_name or user.username,
                 data_nascimento=data_nascimento,
-                numero_telefone=numero_telefone,
-                foto_perfil=foto_perfil
+                numero_telefone=numero_telefone
             )
         
         return user
@@ -84,15 +74,9 @@ class UsuarioForm(UserCreationForm):
 class EditarPerfilForm(forms.ModelForm):
     """
     Formulário para edição do perfil do usuário.
-    Inclui campos para atualizar informações básicas, foto de perfil e senha.
+    Inclui campos para atualizar informações básicas e senha.
     """
-    # Campos adicionais para foto de perfil e telefone
-    foto_perfil = forms.ImageField(
-        required=False,
-        label='Foto de Perfil',
-        help_text='Faça upload de uma foto para o seu perfil (opcional)'
-    )
-    
+    # Campo para telefone
     numero_telefone = forms.CharField(
         label='Telefone',
         max_length=20,
@@ -132,7 +116,7 @@ class EditarPerfilForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'foto_perfil', 'numero_telefone', 'data_nascimento']
+        fields = ['first_name', 'last_name', 'email', 'numero_telefone', 'data_nascimento']
         labels = {
             'first_name': 'Status',
             'last_name': 'Nome Completo',
@@ -143,8 +127,7 @@ class EditarPerfilForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Define as classes CSS para os campos
         for field in self.fields:
-            if field not in ['foto_perfil']:  # Não aplica a classe form-control ao campo de upload
-                self.fields[field].widget.attrs.update({'class': 'form-control'})
+            self.fields[field].widget.attrs.update({'class': 'form-control'})
         
         # Adiciona placeholder específico para o campo de email
         self.fields['email'].widget.attrs['placeholder'] = 'seu@email.com'

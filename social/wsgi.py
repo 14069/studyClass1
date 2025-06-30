@@ -13,11 +13,6 @@ from django.core.wsgi import get_wsgi_application
 # Configura as variáveis de ambiente antes de importar o Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'social.settings')
 
-# Importa e configura o Cloudinary
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-
 # Inicializa a aplicação WSGI
 application = get_wsgi_application()
 

@@ -2,8 +2,6 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
-import cloudinary
-import dj_database_url
 
 
 # Carrega as variáveis de ambiente do arquivo .env
@@ -58,8 +56,6 @@ INSTALLED_APPS = [
     'socialapp',
     'usuario',
     'widget_tweaks',
-    'cloudinary_storage',
-    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -75,16 +71,9 @@ MIDDLEWARE = [
 
 
 
-# Arquivos de mídia (Cloudinary)
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# Cloudinary Config
-cloudinary.config( 
-  cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
-  api_key = os.getenv('CLOUDINARY_API_KEY'), 
-  api_secret = os.getenv('CLOUDINARY_API_SECRET'),
-  secure = True
-)
+# Configuração de armazenamento de arquivos de mídia
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ROOT_URLCONF = 'social.urls'
 
